@@ -1,0 +1,11 @@
+C 1 
+El -70
+Ena 30
+Ek -90 
+gl 0.1
+gna 30 
+gk 5
+vt -58 
+vth -49.2
+vr -66.9
+vspike 25
