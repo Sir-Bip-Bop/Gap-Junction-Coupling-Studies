@@ -7,6 +7,13 @@ def compute_chi(data):
     '''
 
     #calculate the average voltage as a function of time
-    mean_voltage = np.mean(data,1) #revisar que eje
+    mean_voltage = np.mean(data,axis=1)
 
     #calculate the variance of each trave and the average voltage
+    ind_variance = np.mean(data**2,axis=0) - np.mean(data,axis=0)**2
+    total_variance = np.mean(mean_voltage**2,axis=0) - np.mean(mean_voltage,axis=0)**2
+
+    #calculate chi
+    chi = np.sqrt(total_variance**2 / np.mean(ind_variance**2,axis=0))
+
+    return chi 
