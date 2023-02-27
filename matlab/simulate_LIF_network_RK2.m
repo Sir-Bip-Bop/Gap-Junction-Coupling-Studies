@@ -249,7 +249,7 @@ fprintf('Excitatory cells: %i\n', total_van_Rossum_E)
 fprintf('Inhibitory cells: %i\n\n', total_van_Rossum_I)
 
 fprintf('<strong>van Rossum distance normalised by firing rate</strong>\n')
-fprintf('Full network: %i\n', total_van_Rossum/network_firing_rate)
+fprintf('Full network: %i\n', total_van_Rossum/ )
 fprintf('Excitatory cells: %i\n', total_van_Rossum_E/network_firing_rate_E)
 fprintf('Inhibitory cells: %i\n\n', total_van_Rossum_I/network_firing_rate_I)
 
