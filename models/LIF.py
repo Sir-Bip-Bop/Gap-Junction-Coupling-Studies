@@ -1,11 +1,11 @@
 
 import numpy as np 
-def IF_RK(y,order,gl,El,C,I,tau,k,v_neurons):
+def IF_RK(y,order,gl,El,C,I,tau,k,v_neurons,A):
     '''
     Algorithm that integrates the LIF model, returning the float dydt, the change in the signal
     '''
     Vrest = -80
-    dvdt = (-gl * (y[0] - El) + I - k * np.sum(y[0] - v_neurons) - y[1]* (y[0] - Vrest)) / C  
+    dvdt = (-gl * (y[0] - El) + I - k * np.sum(A * (y[0] - v_neurons)) - y[1]* (y[0] - Vrest)) / C  
 
     y = np.append(y,0)
 
@@ -19,7 +19,7 @@ def IF_RK(y,order,gl,El,C,I,tau,k,v_neurons):
 
     return dydt
 
-def rk_if(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,tau,spikelet):
+def rk_if(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,tau,spikelet,E_matrix,C_matrix):
     ''' 
     Runge-Kutta integration of the 4th order of the LIF model
     '''
@@ -42,10 +42,10 @@ def rk_if(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,tau,spikelet):
     
     for i in range(0,Nsteps-1):
         for k in range(0,num_neurons):
-            k1 = IF_RK( Y[i,k*(1+order):(k+1)*(1+order)] ,order,gl,El,C,I[i,k],tau,strength,Y[i,0:end:1+order])
-            k2 = IF_RK( Y[i,k*(1+order):(k+1)*(1+order)] +0.5 * dt * k1,order,gl,El,C,I[i,k],tau,strength,Y[i,0:end:1+order])
-            k3 = IF_RK( Y[i,k*(1+order):(k+1)*(1+order)] +0.5 * dt * k2,order,gl,El,C,I[i,k],tau,strength,Y[i,0:end:1+order])
-            k4 = IF_RK( Y[i,k*(1+order):(k+1)*(1+order)] + dt * k3,order,gl,El,C,I[i,k],tau,strength,Y[i,0:end:1+order])
+            k1 = IF_RK( Y[i,k*(1+order):(k+1)*(1+order)] ,order,gl,El,C,I[i,k],tau,strength,Y[i,0:end:1+order],E_matrix[k,:])
+            k2 = IF_RK( Y[i,k*(1+order):(k+1)*(1+order)] +0.5 * dt * k1,order,gl,El,C,I[i,k],tau,strength,Y[i,0:end:1+order], E_matrix[k,:])
+            k3 = IF_RK( Y[i,k*(1+order):(k+1)*(1+order)] +0.5 * dt * k2,order,gl,El,C,I[i,k],tau,strength,Y[i,0:end:1+order], E_matrix[k,:])
+            k4 = IF_RK( Y[i,k*(1+order):(k+1)*(1+order)] + dt * k3,order,gl,El,C,I[i,k],tau,strength,Y[i,0:end:1+order], E_matrix[k,:])
 
             Y[i+1,k*(1+order):(k+1)*(1+order)] = Y[i,k*(1+order):(k+1)*(1+order)] + (1/6)*dt*(k1+2*k2+2*k3+k4)
 
@@ -54,8 +54,7 @@ def rk_if(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,tau,spikelet):
                 data[i+1,k] = w 
                 Y[i+1, k * (1+order)] = Vr 
                 for l in range(0,num_neurons):
-                    if l != k:
-                        Y[i+1,l * (1+order) +order] = Y[i+1,l*(1+order) + order] + Isyn[k,l]
+                        Y[i+1,l * (1+order) +order] = Y[i+1,l*(1+order) + order] + C_matrix[k,l] *Isyn[k,l]
                         Y[i+1,l * (1+order)] = Y[i+1,l *(1+order)] + spikelet
             else:
                 data[i+1,k] = Y[i+1,k *(1+order)]

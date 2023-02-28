@@ -1,11 +1,11 @@
 import numpy as np 
 
-def IS_RK(y,order,C,I,vr,vt,k_2,a,b,k,k_u,tau,v_neurons):
+def IS_RK(y,order,C,I,vr,vt,k_2,a,b,k,k_u,tau,v_neurons,A):
     '''
     Algorithm of the evolution of the Ishikevich model, returning the numpy array dudt
     '''
     Vrest = - 80 #which one to use
-    dvdt = (k * (y[0] - vr) * (y[0] - vt) - k_u * y[1] + I - k_2 * np.sum(y[0]-v_neurons) - y[2] *(y[0]-Vrest))   / C
+    dvdt = (k * (y[0] - vr) * (y[0] - vt) - k_u * y[1] + I - k_2 * np.sum(A*(y[0]-v_neurons)) - y[2] *(y[0]-Vrest))   / C
     dudt = a * (b*(y[0] - vr) - y[1])
     y = np.append(y,0)
     for i in range(2,2+order):
@@ -17,7 +17,7 @@ def IS_RK(y,order,C,I,vr,vt,k_2,a,b,k,k_u,tau,v_neurons):
 
     return dydt 
 
-def rk_ish(dt,t_final,order,y0,u0,I,Isyn,C,vr,vt,k_2,a,b,c,d,vpeak,k_u,strength,tau):
+def rk_ish(dt,t_final,order,y0,u0,I,Isyn,C,vr,vt,k_2,a,b,c,d,vpeak,k_u,strength,tau,E_matrix,C_matrix):
     '''
     Runge-Kutta integration of the 4th order of the Izhikevich model
     '''
@@ -43,10 +43,10 @@ def rk_ish(dt,t_final,order,y0,u0,I,Isyn,C,vr,vt,k_2,a,b,c,d,vpeak,k_u,strength,
 
     for i in range(0,Nsteps - 1):
         for k in range(0,num_neurons):
-            k1 = IS_RK( Y[i,k*(2+order):(k+1)*(2+order)] ,order,C,I[i,k],vr,vt,strength,a,b,k_2,k_u,tau,Y[i,0:end:2+order])
-            k2 = IS_RK( Y[i,k*(2+order):(k+1)*(2+order)] +0.5 * dt * k1,order,C,I[i,k],vr,vt,strength,a,b,k_2,k_u,tau,Y[i,0:end:2+order])
-            k3 = IS_RK( Y[i,k*(2+order):(k+1)*(2+order)] +0.5 * dt * k2,order,C,I[i,k],vr,vt,strength,a,b,k_2,k_u,tau,Y[i,0:end:2+order])
-            k4 = IS_RK( Y[i,k*(2+order):(k+1)*(2+order)] + dt * k3,order,C,I[i,k],vr,vt,strength,a,b,k_2,k_u,tau,Y[i,0:end:2+order])
+            k1 = IS_RK( Y[i,k*(2+order):(k+1)*(2+order)] ,order,C,I[i,k],vr,vt,strength,a,b,k_2,k_u,tau,Y[i,0:end:2+order], E_matrix[k,:])
+            k2 = IS_RK( Y[i,k*(2+order):(k+1)*(2+order)] +0.5 * dt * k1,order,C,I[i,k],vr,vt,strength,a,b,k_2,k_u,tau,Y[i,0:end:2+order], E_matrix[k,:])
+            k3 = IS_RK( Y[i,k*(2+order):(k+1)*(2+order)] +0.5 * dt * k2,order,C,I[i,k],vr,vt,strength,a,b,k_2,k_u,tau,Y[i,0:end:2+order], E_matrix[k,:])
+            k4 = IS_RK( Y[i,k*(2+order):(k+1)*(2+order)] + dt * k3,order,C,I[i,k],vr,vt,strength,a,b,k_2,k_u,tau,Y[i,0:end:2+order], E_matrix[k,:])
 
             Y[i+1,k*(2+order):(k+1)*(2+order)] = Y[i,k*(2+order):(k+1)*(2+order)] + (1/6)*dt*(k1+2*k2+2*k3+k4)
 
@@ -56,8 +56,7 @@ def rk_ish(dt,t_final,order,y0,u0,I,Isyn,C,vr,vt,k_2,a,b,c,d,vpeak,k_u,strength,
                 Y[i, k * (2 +order)] = vpeak #no influence
                 Y[i+1, 1 + k * (2+order)] = Y[i+1, 1+k*(2+order)] + d
                 for l in range(0,num_neurons):
-                    if l!= k:
-                        Y[i+1, l *(2+order) + 2 + order -1] = Y[i+1, l*(2+order) + 2 +order - 1] + Isyn[k,l]
+                        Y[i+1, l *(2+order) + 2 + order -1] = Y[i+1, l*(2+order) + 2 +order - 1] + C_matrix[k,l] *Isyn[k,l]
 
             data[i+1,k] = Y[i+1,k*(2+order)]
 
