@@ -11,8 +11,8 @@ def compute_van_Rossum_distance(spike_matrix,t,t_R):
     '''
     dt = (t[len(t)-1] - t[0] ) / (len(t)-1)
 
-
-    spike_matrix = np.array(spike_matrix.todense())
+    if type(spike_matrix) is not np.ndarray:
+        spike_matrix = np.array(spike_matrix.todense())
     N = len(spike_matrix[:,0])  
     van_Rossum = np.zeros((N,N))
     waveforms = np.zeros_like(spike_matrix)
