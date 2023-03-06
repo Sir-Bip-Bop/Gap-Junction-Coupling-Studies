@@ -27,7 +27,7 @@ def HH_RK(y,order,gna,gk,gl,Ena,Ek,El,C,I,tau,k,v_neurons,A):
     vt = -58 
     Ina = gna * y[2]**3 * y[3] * (y[0] - Ena)
     Ik = gk * y[1]**4 * (y[0]- Ek)
-    print(v_neurons)
+    #print(v_neurons)
     dvdt = (-Ina -Ik - gl * (y[0] - El) + I - k * np.sum(A * (y[0] - v_neurons)) -y[4] * (y[0] - Vrest)) / C 
 
     dmdt = am(y[0],vt) * (1-y[2]) - bm(y[0],vt) * y[2]
@@ -89,7 +89,7 @@ def rk_simplemodel(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, Ek, El,
     for i in range(0,Nsteps-1):
         for k in range(0,num_neurons):
             k1 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)], order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order], E_matrix[k,:] )
-            print(Y[i,0],Y[i,4+order]) 
+            #print(Y[i,0],Y[i,4+order]) 
             k2 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k1, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order ], E_matrix[k,:] )
             #print('k2',k2)
             k3 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k2, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order ], E_matrix[k,:] )
