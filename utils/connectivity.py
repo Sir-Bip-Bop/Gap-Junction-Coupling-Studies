@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.sparse import csc_matrix
+from scipy.sparse import csr_matrix
 import scipy.stats as stats
 
 def create_matrix(connection_type,num_neurons = 0, connection_fraction_e = 0.5, connection_fraction_c = 0.5,seed_ini = 1234 ):
@@ -20,7 +20,7 @@ def create_matrix(connection_type,num_neurons = 0, connection_fraction_e = 0.5, 
         matrix[i_lower] = matrix.T[i_lower]
         #empty the diagonal
         np.fill_diagonal(matrix,0)
-        matrix = csc_matrix(matrix)
+        matrix = csr_matrix(matrix)
 
     elif connection_type == 'chemical' : 
         np.random.seed(seed_ini + 37)
@@ -28,7 +28,7 @@ def create_matrix(connection_type,num_neurons = 0, connection_fraction_e = 0.5, 
         matrix = np.heaviside(connection_fraction_c - stats.uniform.rvs(size=(num_neurons,num_neurons)),0)
         #remove the entries from the diagonal
         np.fill_diagonal(matrix,0)
-        matrix = csc_matrix(matrix)
+        matrix = csr_matrix(matrix)
 
 
 

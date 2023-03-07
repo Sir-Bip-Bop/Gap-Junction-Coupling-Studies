@@ -1,4 +1,6 @@
 import numpy as np 
+from scipy import sparse
+from scipy.sparse import csr_matrix
 
 def an(v,vt):
     return -0.032 * (v-vt-15) / (np.exp(-(v-vt-15)/5)-1)
@@ -154,3 +156,116 @@ def rk_Icst(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, Ek, El, C, I, 
                         Y[i+1,l*(4+order) + 4 + order-1] = Y[i+1,l * (4+order) +4 + order-1] + Isyn[k,l]
             data[i+1,k] = Y[i+1,k*(4+order)]  
     return data, Y
+
+def rk_HH(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, Ek, El, C, I, Isyn, strength, tau, E_matrix, C_matrix):
+    ''' 
+    Runge Kutta integration of the 4th order of the HH model, for various orders and numbers of neurons
+    '''
+
+    #obtain the number of steps of the simulation
+    Nsteps = int(t_final/dt)
+
+    #we are assuming we are working with arrays, so transform everything into one
+    if type(y0) is int:
+        y0 = [y0]
+        n0 = [n0]
+        m0 = [m0]
+        h0 = [h0]
+        I = np.array( [ [I] , [I] ] )
+
+    #compute the number of neurons
+    num_neurons = len(y0)
+
+    #we are only allowing a synaptic filtering order up to 5
+    if order > 5:
+        print('We are changing down the filtering order to the maximum: 5')
+        order = 5
+    #variables that store the signal
+    Y = np.zeros((Nsteps,num_neurons))
+    N = np.zeros((Nsteps,num_neurons))
+    M = np.zeros((Nsteps,num_neurons))
+    H = np.zeros((Nsteps,num_neurons))
+    synaptic = np.zeros((Nsteps,num_neurons))
+
+    #computing where is the end of our array, a tool that will help us later (to be concise)
+    end = len(Y) - 1
+
+    #assign the initial values
+    for i in range (0,num_neurons): 
+        Y[0,i] = y0[i]
+        N[0,i] = n0[i]
+        M[0,i] = m0[i]
+        M[0,i] = h0[i]
+
+    #Runge-Kutta 4th order method 
+    for i in range(0,Nsteps-1):
+        k1 = HH_RK_2(Y[i,:], N[i,:], M[i,:], H[i,:], synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix)
+        #print(Y[i,0],Y[i,4+order]) 
+        k2 = HH_RK_2(Y[i,:]+ 0.5*dt*k1[0],N[i,:] + 0.5*dt*k1[1] , M[i,:] + 0.5*dt*k1[2], H[i,:] + 0.5*dt*k1[3],synaptic[i,:] + 0.5*dt*k1[4],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix )
+        #print('k2',k2)
+        k3 = HH_RK_2(Y[i,:]+ 0.5*dt*k2[0],N[i,:] + 0.5*dt*k2[1] , M[i,:] + 0.5*dt*k2[2], H[i,:] + 0.5*dt*k2[3],synaptic[i,:] + 0.5*dt*k2[4],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix )            
+        
+        k4 = HH_RK_2(Y[i,:]+dt*k3[0],N[i,:] + dt*k3[1] , M[i,:] + dt*k3[2], H[i,:] + dt*k3[3],synaptic[i,:] + dt*k3[4],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix  )
+            
+
+        Y[i + 1, :] = Y[i, :] + 1/6 * dt * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0])
+        N[i + 1, :] = N[i, :] + 1/6 * dt * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1])
+        M[i + 1, :] = M[i, :] + 1/6 * dt * (k1[2] + 2*k2[2] + 2*k3[2] + k4[2])
+        H[i + 1, :] = H[i, :] + 1/6 * dt * (k1[3] + 2*k2[3] + 2*k3[3] + k4[3])
+        synaptic[i + 1, :] = synaptic[i, :] + 1/6 * dt * (k1[4] + 2*k2[4] + 2*k3[4] + k4[4])
+
+        if(i>0):
+            spikes =  np.where( (Y[i, :] >= Y [i-1,:]) & (Y[i,:] >= Y[i+1,:]) & (Y[i,:] > 0))
+            if len(spikes[0]) > 0:
+                #print('spike:', i, Y[i,:], Y[i-1,:], Y[i+1,:] )
+                for spike_ind in spikes[0]:
+                    #print(np.shape(C_matrix[spike_ind,:]),np.shape(C_matrix[0,:]),spikes)
+                    synaptic[i+1,:] = synaptic[i+1,:] + C_matrix[spike_ind,:] *Isyn
+    return Y
+
+def HH_RK_2(y,n,m,h,synaptic,order,gna,gk,gl,Ena,Ek,El,C,I,tau,k,A):
+    '''
+    Algorithm that calculates the changes in v, m, h, and n as per the HH model equations. It returns an np.array containing these changes
+    '''
+    Vrest = - 80 #because it's an inhibitory neuron
+    vt = -58 
+    Ina = gna * np.power(m,3) * h * (y - Ena)
+    Ik = gk * np.power(n,4) * (y- Ek)
+    print(type((A.multiply(np.subtract.outer(y, y)))),'\n')
+    I_gap = np.ravel((A.multiply(np.subtract.outer(y, y))).sum(axis=0))
+    #print(I_gap)
+    dvdt = (-Ina -Ik - gl * (y - El) + I - k * I_gap - np.multiply(synaptic,(y- Vrest)) )/ C 
+
+    dmdt = np.subtract(np.multiply(am_2(y,vt), (1-m)) , np.multiply(bm_2(y,vt), m))
+    dhdt = np.subtract(np.multiply(ah_2(y,vt), (1-h)) , np.multiply( bh_2(y,vt),h))
+    dndt = np.subtract( np.multiply(an_2(y,vt), (1-n)) , np.multiply(bn_2(y,vt), n))
+
+    dsdt = -synaptic / tau
+
+    dydt = [dvdt,dndt,dmdt,dhdt,dsdt]
+    dydt = np.array(dydt,dtype=object)
+    return dydt
+
+def an_2(v,vt):
+    v = v.astype(float)
+    return np.array(-0.032 * (v-vt-15) / (np.exp(-(v-vt-15)/5)-1))
+
+def bn_2(v,vt):
+    v = v.astype(float)
+    return np.array(0.5* np.exp(-(v-vt-10)/40))
+
+def am_2(v,vt):
+    v = v.astype(float)
+    return np.array(-0.32 * (v-vt-13) / (np.exp(-(v-vt-13)/4)-1))
+
+def bm_2(v,vt):
+    v = v.astype(float)
+    return np.array(0.28 * (v-vt-40) / (np.exp((v-vt-40)/5) -1))
+
+def ah_2(v,vt):
+    v = v.astype(float)
+    return np.array(0.128*np.exp(-(v-vt-17)/18))
+
+def bh_2(v,vt):
+    v = v.astype(float)
+    return np.array(4 / (1+np.exp(-(v-vt-40)/5)))
