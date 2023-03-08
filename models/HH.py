@@ -30,7 +30,7 @@ def HH_RK(y,order,gna,gk,gl,Ena,Ek,El,C,I,tau,k,v_neurons,A):
     Ina = gna * y[2]**3 * y[3] * (y[0] - Ena)
     Ik = gk * y[1]**4 * (y[0]- Ek)
     #print(v_neurons)
-    dvdt = (-Ina -Ik - gl * (y[0] - El) + I - k * np.sum(A * (y[0] - v_neurons)) -y[4] * (y[0] - Vrest)) / C 
+    dvdt = (-Ina -Ik - gl * (y[0] - El) + I - k * np.sum( (y[0] - v_neurons)) -y[4] * (y[0] - Vrest)) / C 
 
     dmdt = am(y[0],vt) * (1-y[2]) - bm(y[0],vt) * y[2]
     dhdt = ah(y[0],vt) * (1-y[3]) - bh(y[0],vt) * y[3]
@@ -231,8 +231,9 @@ def HH_RK_2(y,n,m,h,synaptic,order,gna,gk,gl,Ena,Ek,El,C,I,tau,k,A):
     vt = -58 
     Ina = gna * np.power(m,3) * h * (y - Ena)
     Ik = gk * np.power(n,4) * (y- Ek)
-    print(type((A.multiply(np.subtract.outer(y, y)))),'\n')
-    I_gap = np.ravel((A.multiply(np.subtract.outer(y, y))).sum(axis=0))
+    print((np.subtract.outer(y, y)),'\n')
+    result = sparse.coo_matrix(A.multiply(np.subtract.outer(y, y)))
+    I_gap = np.ravel(result.sum(axis=0))
     #print(I_gap)
     dvdt = (-Ina -Ik - gl * (y - El) + I - k * I_gap - np.multiply(synaptic,(y- Vrest)) )/ C 
 
