@@ -201,11 +201,11 @@ def rk_HH(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, Ek, El, C, I, Is
     for i in range(0,Nsteps-1):
         k1 = HH_RK_2(Y[i,:], N[i,:], M[i,:], H[i,:], synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix)
         #print(Y[i,0],Y[i,4+order]) 
-        k2 = HH_RK_2(Y[i,:]+ 0.5*dt*k1[0],N[i,:] + 0.5*dt*k1[1] , M[i,:] + 0.5*dt*k1[2], H[i,:] + 0.5*dt*k1[3],synaptic[i,:] + 0.5*dt*k1[4],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix )
+        k2 = HH_RK_2(np.float64(Y[i,:]+ 0.5*dt*k1[0]),N[i,:] + 0.5*dt*k1[1] , M[i,:] + 0.5*dt*k1[2], H[i,:] + 0.5*dt*k1[3],synaptic[i,:] + 0.5*dt*k1[4],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix )
         #print('k2',k2)
-        k3 = HH_RK_2(Y[i,:]+ 0.5*dt*k2[0],N[i,:] + 0.5*dt*k2[1] , M[i,:] + 0.5*dt*k2[2], H[i,:] + 0.5*dt*k2[3],synaptic[i,:] + 0.5*dt*k2[4],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix )            
+        k3 = HH_RK_2(np.float64(Y[i,:]+ 0.5*dt*k2[0]),N[i,:] + 0.5*dt*k2[1] , M[i,:] + 0.5*dt*k2[2], H[i,:] + 0.5*dt*k2[3],synaptic[i,:] + 0.5*dt*k2[4],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix )            
         
-        k4 = HH_RK_2(Y[i,:]+dt*k3[0],N[i,:] + dt*k3[1] , M[i,:] + dt*k3[2], H[i,:] + dt*k3[3],synaptic[i,:] + dt*k3[4],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix  )
+        k4 = HH_RK_2(np.float64(Y[i,:]+dt*k3[0]),N[i,:] + dt*k3[1] , M[i,:] + dt*k3[2], H[i,:] + dt*k3[3],synaptic[i,:] + dt*k3[4],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix  )
             
 
         Y[i + 1, :] = Y[i, :] + 1/6 * dt * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0])
@@ -231,11 +231,9 @@ def HH_RK_2(y,n,m,h,synaptic,order,gna,gk,gl,Ena,Ek,El,C,I,tau,k,A):
     vt = -58 
     Ina = gna * np.power(m,3) * h * (y - Ena)
     Ik = gk * np.power(n,4) * (y- Ek)
-    print((np.subtract.outer(y, y)),'\n')
-    result = sparse.coo_matrix(A.multiply(np.subtract.outer(y, y)))
-    I_gap = np.ravel(result.sum(axis=0))
+    I_gap = np.ravel((A.multiply( np.subtract.outer(y, y))).sum(axis=0))
     #print(I_gap)
-    dvdt = (-Ina -Ik - gl * (y - El) + I - k * I_gap - np.multiply(synaptic,(y- Vrest)) )/ C 
+    dvdt = (-Ina -Ik - gl * (y - El) + I + k * I_gap - np.multiply(synaptic,(y- Vrest)) )/ C 
 
     dmdt = np.subtract(np.multiply(am_2(y,vt), (1-m)) , np.multiply(bm_2(y,vt), m))
     dhdt = np.subtract(np.multiply(ah_2(y,vt), (1-h)) , np.multiply( bh_2(y,vt),h))
