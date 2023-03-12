@@ -18,6 +18,7 @@ def compute_van_Rossum_distance(spike_matrix,t,t_R):
     waveforms = np.zeros_like(spike_matrix)
     #construct kernel
     kernel = np.exp(-t/t_R)
+    #print(len(kernel))
 
     #Convolve spike trains with kernel
     # (2D convolution iwth 1 as column convolution, i.e. no convolution)
