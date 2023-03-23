@@ -69,7 +69,7 @@ def IS_RK_2(y,u,synaptic,order,C,I,vr,vt,k_2,a,b,k,k_u,tau,A):
     '''
 
     Vrest = - 80 
-    dvdt = (k * np.multiply((y - vr),(y - vt)) - k_u * u + I + k_2 *np.ravel((A.multiply( np.subtract.outer(y, y))).sum(axis=0)) -np.multiply(synaptic[0:len(y)-1],(y- Vrest)) )  / C
+    dvdt = (k * np.multiply((y - vr),(y - vt)) - k_u * u + I + k_2 *np.ravel((A.multiply( np.subtract.outer(y, y))).sum(axis=0)) -np.multiply(synaptic[0:len(y)],(y- Vrest)) )  / C
     dudt = a * np.subtract(b*(y - vr),u)
     #print(b*(y - vr))
     for i in range(0,order):
@@ -108,9 +108,6 @@ def rk_ish_2(dt,t_final,order,y0,u0,I,Isyn,C,vr,vt,k_2,a,b,c,d,vpeak,k_u,strengt
     U = np.zeros( (Nsteps,num_neurons))
     data = np.zeros( (Nsteps, num_neurons))
     synaptic = np.zeros((Nsteps,order*num_neurons))
-
-    #computing where is the end of our array, a tool that will help us later (to be concise)
-    end = len(Y) - 1
 
     #assign the initial values
     for i in range(0,num_neurons):

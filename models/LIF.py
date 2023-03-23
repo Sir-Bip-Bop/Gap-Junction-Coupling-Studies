@@ -68,7 +68,7 @@ def IF_RK_2(y,synaptic,order,gl,El,C,I,tau,k,A):
     Vrest = -80
     I_gap = np.ravel((A.multiply( np.subtract.outer(y, y))).sum(axis=0))
     #print(np.shape(np.subtract(y,El)),np.shape(I_gap),np.shape(np.multiply(synaptic[0:len(y)-1],(y- Vrest))))
-    dvdt = (-gl * np.subtract(y,El) + I + k * I_gap - np.multiply(synaptic[0:len(y)-1],(y- Vrest)) ) / C  
+    dvdt = (-gl * np.subtract(y,El) + I + k * I_gap - np.multiply(synaptic[0:len(y)],(y- Vrest)) ) / C  
 
     for i in range(0,order):
         if i == order -1 :
@@ -105,9 +105,6 @@ def rk_if_2(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,tau,spikelet,E_
     data = np.zeros( (Nsteps, num_neurons))
     synaptic = np.zeros((Nsteps,order*num_neurons))
 
-    #computing where is the end of our array, a tool that will help us later (to be concise)
-    end = len(Y) -1
-
     #assign the initial values
     for i in range(0,num_neurons):
         Y[0,i] = y0[i]
@@ -126,6 +123,7 @@ def rk_if_2(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,tau,spikelet,E_
             spikes = np.where( Y[i+1,:] >= Vth)
             if len(spikes[0]) > 0:
                 for spike_ind in spikes[0]:
+                    data[i+1,:] = Y[i+1,:]
                     data[i+1,spike_ind] = w 
                     Y[i+1,spike_ind] = Vr 
                     synaptic[i+1,(order-1)*num_neurons:order*num_neurons] = synaptic[i+1,(order-1)*num_neurons:order*num_neurons] + C_matrix[spike_ind,:] *Isyn

@@ -1,9 +1,0 @@
-problem files:
-    -HH.py (in models folder)
-    -GHResults2.ipynb
-
-problem function:
-    -HH_RK_2: line 234-236. The error in particular
-    -rk_HH : line 160. The function that calls HH_RK_2
-
-    -prueba.ipynb tried to reproduce the situation, but resulted in no errors

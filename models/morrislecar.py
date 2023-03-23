@@ -86,7 +86,7 @@ def ML_RK_2(y, w, synaptic, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Esh
     minf = 0.5 * (1 + np.tanh( ((y - V1 )/ V2)))
     Iion = gna * minf * (y - Ena) + gk * w * (y -Ek) + gshunt * (y - Eshunt)
 
-    dvdt = ( - Iion + k * np.ravel((A.multiply( np.subtract.outer(y, y))).sum(axis=0)) + I - np.multiply(synaptic[0:len(y)-1],(y- Vrest)) )/  C
+    dvdt = ( - Iion + k * np.ravel((A.multiply( np.subtract.outer(y, y))).sum(axis=0)) + I - np.multiply(synaptic[0:len(y)],(y- Vrest)) )/  C
 
     #dvdt = (- Iion + I) / C
     #print(gna * minf * (y[0] - Ena),k * y[1] * (y[0] -Ek),gshunt * (y[0] - Eshunt), np.tanh( ((y[0] - V1 )/ V2)))
@@ -136,9 +136,6 @@ def rk_ml_2(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt,Ena,Ek,Eshunt,C
     Y = np.zeros((Nsteps, num_neurons))
     W = np.zeros((Nsteps, num_neurons))
     synaptic = np.zeros((Nsteps, order*num_neurons))
-
-    #computing where is the end of our array, a tool that will help us later (to be concise)
-    end = len(Y)-1
 
     #assign the initial values
     for i in range (0,num_neurons):
