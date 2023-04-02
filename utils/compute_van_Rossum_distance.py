@@ -30,4 +30,4 @@ def compute_van_Rossum_distance(spike_matrix,t,t_R):
     for j in range(0,N):
         waveform_difference = waveforms - waveforms[j,:]
         van_Rossum[j,:] = np.sqrt(np.trapz(np.square(waveform_difference)/t_R,dx=dt))
-    return van_Rossum    
+    return van_Rossum

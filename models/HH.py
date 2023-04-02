@@ -167,6 +167,8 @@ def rk_simplemodel_Rossum(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, 
         #data we are outputing for convenience
         data[0,i] = y0[i]
 
+    check = np.zeros(num_neurons)
+
     for i in range(0,Nsteps-1):
         for k in range(0,num_neurons):
             k1 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)], order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order] )
@@ -181,10 +183,14 @@ def rk_simplemodel_Rossum(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, 
             Y[i + 1, k * (4 + order): (k+1) *(4+order)] = Y[i, k * (4+order): (k+1)*(4+order) ] + 1/6 * dt * (k1 + 2*k2 + 2*k3 + k4)
 
         for k in range(0,num_neurons):
-            if i>0 and ( Y[i, k*(4+order)] >= Y [i-1,k*(4+order)]) and (Y[i,k*(4+order)] >= Y[i+1,k*(4+order)]) and Y[i,k*(4+order)] > 0:
+            if i>0 and ( Y[i, k*(4+order)] >= Y [i-1,k*(4+order)]) and (Y[i,k*(4+order)] >= Y[i+1,k*(4+order)]) and Y[i,k*(4+order)] > 0 and check[k] == 0:
                 matrix[k,i] = 1
+                check[k] = 1
                 for l in range(0,num_neurons):
                     if l != k:
                         Y[i+1,l*(4+order) + 4 + order-1] = Y[i+1,l * (4+order) +4 + order-1] + Isyn[k,l]
             data[i+1,k] = Y[i+1,k*(4+order)]  
+            if data[i+1,k] < 0:
+                check[k] = 0
+
     return data, Y, matrix
