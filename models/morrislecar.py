@@ -116,7 +116,7 @@ def rk_ml_Rossum(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt,Ena,Ek,Esh
             Y[i + 1, k * (2 + order): (k+1) *(2+order)] = Y[i, k * (2+order): (k+1)*(2+order) ] + 1/6 * dt * (k1 + 2*k2 + 2*k3 + k4)
 
         for k in range(0,num_neurons):
-            if i>0 and ( Y[i, k*(2+order)] >= Y [i-1,k*(2+order)]) and (Y[i,k*(2+order)] >= Y[i+1,k*(2+order)]) and Y[i,k*(2+order)] > 0 and check[k] == 0:
+            if i>0 and ( Y[i, k*(2+order)] >= Y [i-1,k*(2+order)]) and (Y[i,k*(2+order)] >= Y[i+1,k*(2+order)]) and Y[i,k*(2+order)] > 10 and check[k] == 0:
                 matrix[k,i] = 1
                 check[k] = 1
                 #print('Spike! time:',i * dt, 'neuron:',k)

@@ -183,7 +183,7 @@ def rk_simplemodel_Rossum(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, 
             Y[i + 1, k * (4 + order): (k+1) *(4+order)] = Y[i, k * (4+order): (k+1)*(4+order) ] + 1/6 * dt * (k1 + 2*k2 + 2*k3 + k4)
 
         for k in range(0,num_neurons):
-            if i>0 and ( Y[i, k*(4+order)] >= Y [i-1,k*(4+order)]) and (Y[i,k*(4+order)] >= Y[i+1,k*(4+order)]) and Y[i,k*(4+order)] > 0 and check[k] == 0:
+            if i>0 and ( Y[i, k*(4+order)] >= Y [i-1,k*(4+order)]) and (Y[i,k*(4+order)] >= Y[i+1,k*(4+order)]) and Y[i,k*(4+order)] > 10 and check[k] == 0:
                 matrix[k,i] = 1
                 check[k] = 1
                 for l in range(0,num_neurons):
