@@ -26,12 +26,33 @@ phase_diagram = PhasePortrait2D(ML, [[-80,60],[0,1]],
 
 #phase_diagram.add_slider('C',valinit=1, valinterval=[0,2], valstep=0.2)
 phase_diagram.add_slider('I', valinit = 2, valinterval=[0,4], valstep= 0.5)
-phase_diagram.add_nullclines(xcolor='black', ycolor='green', yprecision=0.05,xprecision=0.1)
+#phase_diagram.add_nullclines(xcolor='black', ycolor='green', yprecision=0.05,xprecision=0.1)
 
 
+def MLx(z, w,*,I = 2):
+  V= z
+  return    float(- 2 * 0.5 * (1 + np.tanh( ((V + 3 )/ 20))) * (V - 90) + 2*w * (V+110) + 0.085 * (V + 75)+ I)
+
+def MLy(z,V,*,I = 2):
+  w = z
+  winf = 0.5 * (1 + np.tanh( (V + 3) / 19))
+  return  float(0.93 * (winf - 2)*np.cosh( (V + 3) / 2 / 19))
+X = []
+Y = []
+ii = np.linspace(0,1,100)
+bb = np.linspace(-80,20,100)
+
+for i in ii:
+	solve_x = sp.optimize.fsolve(MLx,-70,args=i)
+	X.append(solve_x)
+
+#for i in bb:
+#	solve_y = sp.optimize.fsolve(MLy,0,args=i)
+#	Y.append(solve_y)
 
 phase_diagram.plot()
-#phase_diagram.plot(X,ii, color= 'red')
-#phase_diagram.plot(bb,Y, color = 'green')
-
+phase_diagram.ax.plot(X,ii, color= 'red', label = 'X - nullcine')
+#phase_diagram.ax.plot(bb,Y, color = 'green', label = 'Y - nullcline')
+phase_diagram.ax.legend(loc='right', bbox_to_anchor=(0.9, 1.03),
+          ncol=1, fancybox=True, shadow=True)
 plt.show()
