@@ -11,7 +11,7 @@ def LIF(I, V, *, C = 1, gl = 0.1, El = -70):
 
 
 
-phase_diagram = PhasePortrait2D(LIF, [[-20,20],[-70,100]],
+phase_diagram = PhasePortrait2D(LIF, [[-20,20],[-70,30]],
     Density= 4,
 	dF_args = {'C': 1, 'gl': 0.1, 'El': -70},
 	MeshDim = 20,
@@ -21,10 +21,13 @@ phase_diagram = PhasePortrait2D(LIF, [[-20,20],[-70,100]],
 	color= 'cool',
 )
 
-#phase_diagram.add_slider('C',valinit=1, valinterval=[0,2], valstep=0.2)
-#phase_diagram.add_slider('gl', valinit = 0.1, valinterval=[-0.5,0.6],valstep=0.1)
-#phase_diagram.add_slider('El', valinit=-70, valinterval=[-80,-60],valstep=5)
 phase_diagram.add_nullclines(xcolor='black', ycolor='green')
 
 phase_diagram.plot()
+phase_diagram.ax.hlines(-49.2,-20,20, color = 'green', label= 'V threshold')
+phase_diagram.ax.hlines(-66.9, -20,20, color = 'red', label= 'V reset')
+phase_diagram.ax.hlines(25,-20,20, color = 'blue', label = 'Peak')
+phase_diagram.ax.legend(loc='right', bbox_to_anchor=(0.9, 1.03),
+          ncol=1, fancybox=True, shadow=True)
+
 plt.show()

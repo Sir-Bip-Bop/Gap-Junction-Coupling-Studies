@@ -26,7 +26,7 @@ phase_diagram = PhasePortrait2D(HH, [[-80,20],[0,1]],
 phase_diagram.add_slider('n', valinit = 0.5, valinterval=[0,1],valstep=0.05)
 phase_diagram.add_slider('h', valinit=0.5, valinterval=[0,1],valstep=0.05)
 phase_diagram.add_slider('I', valinit = 2, valinterval=[0,4], valstep= 0.5)
-phase_diagram.add_nullclines(xcolor='black', ycolor='green', yprecision=0.05,xprecision=0.1)
+#phase_diagram.add_nullclines(xcolor='black', ycolor='green', yprecision=0.05,xprecision=0.1)
 
 
 def HHx(z, m,*, n = 0.5, h = 0.5, I = 2, vt = -58):
@@ -43,12 +43,12 @@ ii = np.linspace(0,1,1000)
 bb = np.linspace(-80,20,1000)
 
 for i in ii:
-	solve_x = sp.optimize.fsolve(HHx,-800,args=i)
-	X.append(solve_x)
+	solve_x = sp.optimize.root_scalar(HHx,args=(i), x0 = -70, x1 = -50)
+	X.append(solve_x.root)
 
 for i in bb:
-	solve_y = sp.optimize.fsolve(HHy,0,args=i)
-	Y.append(solve_y)
+	solve_y = sp.optimize.root_scalar(HHy,args=(i), x0 = 0, x1 = 0.1	)
+	Y.append(solve_y.root)
 
 phase_diagram.plot()
 phase_diagram.ax.plot(X,ii, color= 'red')
