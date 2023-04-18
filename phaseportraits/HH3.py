@@ -53,19 +53,16 @@ for i in bb:
 X = np.array(X)
 Y = np.array(Y)
 
-
 for i in range(len(ii)):
-    if (ii[X[i]] - Y[i]) == 0:
-        idx = i 
-        break
-
-print(idx)
-
+    for j in range(len(X)):
+        dif = ii[i] - Y[j]
+        if dif == 0:
+            idx = j
 
 phase_diagram.plot()
-phase_diagram.ax.plot(X,ii, color= 'red')
-phase_diagram.ax.plot(bb,Y, color = 'green')
-phase_diagram.ax.plot(X[idx],ii[idx], marker = 'o', markersize = 20,color = 'black')
+phase_diagram.ax.plot(X,ii, color= 'red', marker = 'o')
+phase_diagram.ax.plot(bb,Y, color = 'green', marker = 'o')
+phase_diagram.ax.plot(bb[idx],Y[idx], marker = 'o', markersize = 20,color = 'black')
 #phase_diagram.ax.plot(bb[idx],Y[idx], marker = 'o', markersize = 20,color = 'black')
 
 plt.show()
