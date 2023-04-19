@@ -5,8 +5,7 @@ import scipy as sp
 def compute_van_Rossum_distance(spike_matrix,t,t_R,dt_og):
     '''
     Computes the van Rossum distance between a set of spike trains
-    spike matrix - matrix containing spike train, each row corresponds to
-    different neuron/spike train
+    spike matrix - matrix containing spike train, each row corresponds to a different neuron/spike train
     t - time vector (time points for columns of spike_matrix)
     t_R - time constant of exponential kernel
     '''
