@@ -39,6 +39,7 @@ def HHy(z,V,*, m = 1, n = 1, I = 2, vt = -58):
 
 X = []
 Y = []
+I = []
 ii = np.linspace(0,1,100)
 bb = np.linspace(-80,80,100)
 
@@ -53,16 +54,19 @@ for i in bb:
 X = np.array(X)
 Y = np.array(Y)
 
+dist = np.zeros((int(len(ii)),int(len(Y))))
 for i in range(len(ii)):
-    for j in range(len(X)):
-        dif = ii[i] - Y[j]
-        if dif == 0:
-            idx = j
+    for j in range(len(Y)):
+              diff_y = ii[i] - Y[j]
+              diff_x = X[i] - bb[j]
+              dist[i,j] = abs(np.sqrt(diff_y*diff_y + diff_x/20*diff_x/20))
+              
+idx = np.unravel_index(np.argmin(dist, axis=None), dist.shape)  
 
 phase_diagram.plot()
-phase_diagram.ax.plot(X,ii, color= 'red', marker = 'o')
+phase_diagram.ax.plot(X,ii, color= 'red', marker= 'o' )
 phase_diagram.ax.plot(bb,Y, color = 'green', marker = 'o')
-phase_diagram.ax.plot(bb[idx],Y[idx], marker = 'o', markersize = 20,color = 'black')
-#phase_diagram.ax.plot(bb[idx],Y[idx], marker = 'o', markersize = 20,color = 'black')
+phase_diagram.ax.plot(bb[idx[1]],Y[idx[1]], marker = 'o', markersize = 20,color = 'black')
+phase_diagram.ax.plot(X[idx[0]],ii[idx[0]], marker = 'o', markersize = 20,color = 'black')
 
 plt.show()
