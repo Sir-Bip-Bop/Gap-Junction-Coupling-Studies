@@ -26,7 +26,7 @@ phase_diagram = PhasePortrait2D(ML, [[-80,60],[0,1]],
 
 #phase_diagram.add_slider('C',valinit=1, valinterval=[0,2], valstep=0.2)
 phase_diagram.add_slider('I', valinit = 2, valinterval=[0,4], valstep= 0.5)
-phase_diagram.add_nullclines(xcolor='black', ycolor='white',xprecision=0.2, yprecision=0.0001)
+phase_diagram.add_nullclines(xcolor='black',xprecision=0.2,show='x')
 
 
 def MLx(z, w,*,I = 2):
