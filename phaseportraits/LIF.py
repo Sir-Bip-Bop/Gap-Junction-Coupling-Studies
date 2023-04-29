@@ -21,7 +21,7 @@ phase_diagram = PhasePortrait2D(LIF, [[-20,20],[-70,30]],
 	color= 'cool',
 )
 
-phase_diagram.add_nullclines(xcolor='black', ycolor='green')
+phase_diagram.add_nullclines(xcolor='red', ycolor='green')
 
 phase_diagram.plot()
 phase_diagram.ax.hlines(-49.2,-20,20, color = 'green', label= 'V threshold')
