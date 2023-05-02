@@ -149,4 +149,4 @@ def rk_if_Rossum_parallel(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,t
                 data[i+1,k] = Y[i+1,k *(1+order)]
     return_dict['data_IF'] = data 
     return_dict['Y_IF'] = Y 
-    return_dict['Matrix_IF'] = matrix
+    return_dict['Matrix_IF'] = np.array(matrix.todense())

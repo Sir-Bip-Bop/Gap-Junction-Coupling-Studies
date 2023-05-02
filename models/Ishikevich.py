@@ -159,4 +159,4 @@ def rk_ish_Rossum_parallel(dt,t_final,order,y0,u0,I,Isyn,C,vr,vt,k_2,a,b,c,d,vpe
 
     return_dict['data_IZH'] = data 
     return_dict['Y_IZH'] = Y 
-    return_dict['Matrix_IZH'] = matrix
+    return_dict['Matrix_IZH'] =np.array(matrix.todense())
