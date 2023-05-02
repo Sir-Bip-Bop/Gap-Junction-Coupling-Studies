@@ -22,9 +22,6 @@ phase_diagram = PhasePortrait2D(IZH, [[-65,40],[-50,50]],
 	  color= 'cool',
 )
 
-#phase_diagram.add_slider('C',valinit=1, valinterval=[0,2], valstep=0.2)
-phase_diagram.add_slider('I', valinit = 2, valinterval=[0,4], valstep= 0.5)
-#phase_diagram.add_nullclines(xcolor='black', ycolor='green', yprecision=0.05,xprecision=0.1)
 
 def IZHx(z, u,*,I = 2):
   V= z

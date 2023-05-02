@@ -24,7 +24,6 @@ phase_diagram = PhasePortrait2D(ML, [[-80,60],[0,1]],
 	  color= 'cool',
 )
 
-phase_diagram.add_slider('I', valinit = 2, valinterval=[0,4], valstep= 0.5)
 phase_diagram.add_nullclines(xcolor='black',xprecision=0.2,show='x')
 
 
