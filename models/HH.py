@@ -22,7 +22,7 @@ def ah(v,vt):
 def bh(v,vt):
     return 4 / (1+np.exp(-(v-vt-40)/5))
 
-def HH_RK(y,order,gna,gk,gl,Ena,Ek,El,C,I,tau,k,v_neurons,A):
+def HH_RK(y,order,gna,gk,gl,Ena,Ek,El,C,I,tau,k,v_neurons):
     '''
     Algorithm that calculates the changes in v, m, h, and n as per the HH model equations. It returns an np.array containing these changes
     '''

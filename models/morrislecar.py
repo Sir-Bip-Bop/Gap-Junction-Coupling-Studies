@@ -1,7 +1,7 @@
 import numpy as np 
 from scipy.sparse import dok_matrix
 
-def ML_RK(y, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I, tau, k, v_neurons,A ):
+def ML_RK(y, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I, tau, k, v_neurons ):
     '''
     Algorithm of the evolution of the Morris-Lecar model, returning the numpy array dydt
     '''
@@ -11,7 +11,7 @@ def ML_RK(y, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I, tau,
     minf = 0.5 * (1 + np.tanh( ((y[0] - V1 )/ V2)))
     Iion = gna * minf * (y[0] - Ena) + gk * y[1] * (y[0] -Ek) + gshunt * (y[0] - Eshunt)
 
-    dvdt = ( - Iion - k * np.sum(A*(y[0] - v_neurons)) + I - y[2] * (y[0]- Vrest)) / C
+    dvdt = ( - Iion - k * np.sum(y[0] - v_neurons) + I - y[2] * (y[0]- Vrest)) / C
 
     #dvdt = (- Iion + I) / C
     #print(gna * minf * (y[0] - Ena),k * y[1] * (y[0] -Ek),gshunt * (y[0] - Eshunt), np.tanh( ((y[0] - V1 )/ V2)))
@@ -33,8 +33,7 @@ def ML_RK(y, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I, tau,
 
 
 
-
-def rk_ml(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt,Ena,Ek,Eshunt,C,I,Isyn,strength,tau,E_matrix,C_matrix):
+def rk_ml(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt,Ena,Ek,Eshunt,C,I,Isyn,strength,tau):
     '''
     Runge-Kutta integration of the 4th order of the Morris-Lecar model
     '''
@@ -59,13 +58,13 @@ def rk_ml(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt,Ena,Ek,Eshunt,C,I
 
     for i in range(0,Nsteps - 1):
         for k in range(0,num_neurons):
-            k1 = ML_RK(Y[i, k*(2+order): (k+1) * (2+order)], order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, strength, Y[i, 0:end:2+order],E_matrix[k,:] )
+            k1 = ML_RK(Y[i, k*(2+order): (k+1) * (2+order)], order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, strength, Y[i, 0:end:2+order] )
             #print('k1',k1) a[0:4+1:4+1]
-            k2 = ML_RK(Y[i, k*(2+order): (k+1) * (2+order)] + 0.5*dt*k1, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, strength, Y[i, 0:end:2+order] ,E_matrix[k,:] )
+            k2 = ML_RK(Y[i, k*(2+order): (k+1) * (2+order)] + 0.5*dt*k1, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, strength, Y[i, 0:end:2+order] )
             #print('k2',k2)
-            k3 = ML_RK(Y[i, k*(2+order): (k+1) * (2+order)] + 0.5*dt*k2, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, strength, Y[i, 0:end:2+order],E_matrix[k,:] )
+            k3 = ML_RK(Y[i, k*(2+order): (k+1) * (2+order)] + 0.5*dt*k2, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, strength, Y[i, 0:end:2+order])
             
-            k4 = ML_RK(Y[i, k*(2+order): (k+1) * (2+order)] + dt * k3, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, strength, Y[i, 0:end:2+order] ,E_matrix[k,:] )
+            k4 = ML_RK(Y[i, k*(2+order): (k+1) * (2+order)] + dt * k3, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, strength, Y[i, 0:end:2+order] )
             
 
             Y[i + 1, k * (2 + order): (k+1) *(2+order)] = Y[i, k * (2+order): (k+1)*(2+order) ] + 1/6 * dt * (k1 + 2*k2 + 2*k3 + k4)
@@ -73,9 +72,11 @@ def rk_ml(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt,Ena,Ek,Eshunt,C,I
         for k in range(0,num_neurons):
             if i>0 and ( Y[i, k*(2+order)] >= Y [i-1,k*(2+order)]) and (Y[i,k*(2+order)] >= Y[i+1,k*(2+order)]) and Y[i,k*(2+order)] > 0:
                 for l in range(0,num_neurons):
-                        Y[i+1,l*(2+order) + 2 + order-1] = Y[i+1,l * (2+order) +2 + order-1] + C_matrix[k,l] *Isyn[k,l]
+                    if l != k:
+                        Y[i+1,l*(2+order) + 2 + order-1] = Y[i+1,l * (2+order) +2 + order-1] + Isyn[k,l]
             data[i+1,k] = Y[i+1,k*(2+order)]  
     return data, Y
+
 def rk_ml_Rossum(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt,Ena,Ek,Eshunt,C,I,Isyn,strength,tau):
     '''
     Runge-Kutta integration of the 4th order of the Morris-Lecar model

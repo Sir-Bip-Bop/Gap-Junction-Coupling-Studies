@@ -6,7 +6,7 @@ def IF_RK(y,order,gl,El,C,I,tau,k,v_neurons):
     Algorithm that integrates the LIF model, returning the float dydt, the change in the signal
     '''
     Vrest = -80
-    dvdt = (-gl * (y[0] - El) + I - k * np.sum(A * (y[0] - v_neurons)) - y[1]* (y[0] - Vrest)) / C  
+    dvdt = (-gl * (y[0] - El) + I - k * np.sum(y[0] - v_neurons) - y[1]* (y[0] - Vrest)) / C  
 
     y = np.append(y,0)
 
