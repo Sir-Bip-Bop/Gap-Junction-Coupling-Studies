@@ -9,4 +9,6 @@ if not __PROJECT_IMPORTED__:
     from . import phaseportraits
     from . import models 
     from . import utils 
+    from . import NeuronPairs
+    from . import MultipleNeurons
 __PROJECT_IMPORTED__ = True
