@@ -5,9 +5,13 @@ import scienceplots
 import numpy as np
 import scipy as sp
 
+#General plot style used in the project, and size definition
 plt.style.use('science')
 plt.rcParams["figure.figsize"] = (12,12)
+plt.rcParams.update({"axes.grid" : True})
 
+
+#Definition of the functions to integrate, that is the HH equations for the Voltage and the h variable
 def HHx(z, h, m , n ,*, I = 2, vt = -58):
   V= z
   return  float(-30*m*m*m*h*(V-30) - 5*n*n*n*n*(V+90) - 0.1*(V+70) + I)
@@ -17,7 +21,7 @@ def HHy(z,V,*, m = 1, n = 1, I = 2, vt = -58):
   return float( 0.128 * (np.exp(-(V-vt-17)/18)) * (1-h) - 4 / (1+np.exp(-(V-vt-40)/5)) * h)
 
 
-
+#The experiment is set up to obtain all the roots for a combination of all possible values for both m and n
 m_values = np.linspace(0,1,50)
 n_values = np.linspace(0,1,50)
 Roots_x = np.zeros((50,50))
@@ -33,14 +37,11 @@ for p in range(len(m_values)):
         X.append(solve_x.root)
 
       X = np.array(X)
-
       for i in X:
         solve_y = sp.optimize.root_scalar(HHy,args=(i), x0 = 0, x1 = 0.1)
         Y.append(solve_y.root)
 
       Y = np.array(Y)
-
-
       idx = np.argwhere(np.diff(np.sign(ii- Y))).flatten()
       Roots_x[p,q] = X[idx]
       Roots_y[p,q] = Y[idx]
@@ -48,9 +49,8 @@ for p in range(len(m_values)):
 
 
 
-
+#Making the plot
 plt.scatter(Roots_x,Roots_y, marker = 'o',color = 'black', label = 'm and n values rise equally from 0.1 to 1.0')
-plt.grid()
 plt.title('HH Phase portrait (V-h) - Intersection of nullclines')
 plt.xlabel (r'Voltage$(\mu V)$')
 plt.ylabel('recovery variable h')

@@ -6,9 +6,14 @@ import matplotlib
 import numpy as np
 import scipy as sp
 
+
+#General plot style used in the project, and size definition
 plt.style.use('science')
 plt.rcParams["figure.figsize"] = (8,8)
+plt.rcParams.update({"axes.grid" : True})
 
+
+#Definition of the function with some extra spice in order to ensure our experiment works
 class my_function:
    def __init__(self, m , h, dt):
       self._m = m 
@@ -34,13 +39,15 @@ class my_function:
          float( -0.032 * (V-vt-15) / (np.exp(-(V-vt-15)/5)-1) * (1-n) - 0.5 * (np.exp(-(V-vt-10)/40)) * n)
       )
 
-m_array = np.loadtxt('phaseportraits/m.txt')
-h_array = np.loadtxt('phaseportraits/h.txt')
-time = np.loadtxt('phaseportraits/time.txt')
 
+#Loading the needed data from the .txt files 
+m_array = np.loadtxt('phaseportraits/m_data.txt')
+h_array = np.loadtxt('phaseportraits/h_data.txt')
+time = np.loadtxt('phaseportraits/time_data.txt')
+
+
+#Creation of the phase diagram
 ins = my_function(m_array, h_array, time[0])
-
-
 phase_diagram = PhasePortrait2D(ins, [[-80,80],[0,1]],
 	  dF_args = {'I': 2, 'vt': -58},
 	  MeshDim = 12,
@@ -53,4 +60,4 @@ phase_diagram = PhasePortrait2D(ins, [[-80,80],[0,1]],
 phase_diagram.add_slider('t',valinit=0, valinterval=[0,time[1]], valstep=10)
 phase_diagram.add_nullclines(xprecision=0.01, yprecision=0.01)
 phase_diagram.plot()
-
+plt.show()

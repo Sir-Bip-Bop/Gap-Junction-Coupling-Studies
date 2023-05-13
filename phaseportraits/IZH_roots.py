@@ -1,18 +1,30 @@
-
-                                                                                        
 from phaseportrait import *
 import matplotlib.pyplot as plt
 import scienceplots
 import numpy as np
 import scipy as sp
 
+
+#General plot style used in the project, and size definition
 plt.style.use('science')
 plt.rcParams["figure.figsize"] = (12,12)
+plt.rcParams.update({"axes.grid" : True})
 
+
+#Definition of the functions to integrate, that is the IZH equation
 def IZH(V,u, *, I =2):
   return  float(1/5*(V+90)* (V+48.5) - 0.06*u + I), float( 0.5* (-1.3 * (V+70)-u) )
 
+def IZHx(z, u,*,I = 2):
+  V= z
+  return   float(1/5*(V+90)* (V+48.5) - 0.06*u + I)
 
+def IZHy(z,V,*,I = 2):
+  u = z
+  return float( 0.5* (-1.3 * (V+70)-u) )
+
+
+#Creation of the phase diagram
 phase_diagram = PhasePortrait2D(IZH, [[-65,40],[-50,50]],
 	  dF_args = {'I': 2},
 	  MeshDim = 20,
@@ -23,13 +35,7 @@ phase_diagram = PhasePortrait2D(IZH, [[-65,40],[-50,50]],
 )
 
 
-def IZHx(z, u,*,I = 2):
-  V= z
-  return   float(1/5*(V+90)* (V+48.5) - 0.06*u + I)
-
-def IZHy(z,V,*,I = 2):
-  u = z
-  return float( 0.5* (-1.3 * (V+70)-u) )
+#Obtaining the nullcines in an analytical format - finding the roots
 X = []
 Y = []
 ii = np.linspace(-50,50,100)
@@ -43,13 +49,12 @@ for i in bb:
 	solve_y = sp.optimize.root_scalar(IZHy,args = (i), x0= 0, x1 = 1)
 	Y.append(solve_y.root)
 
+
+#Creation of the plot, the constant lines are representing the threshold and reset values
 phase_diagram.plot()
 phase_diagram.ax.plot(X,ii, color= 'red', label = 'X - nullcine')
 phase_diagram.ax.plot(bb,Y, color = 'green', label = 'Y - nullcline')
 phase_diagram.ax.vlines(35,-50,50, color = 'blue', label = 'Peak')
 phase_diagram.ax.vlines(-50,-50,50, color = 'black', label = 'Reset')
-
-phase_diagram.ax.legend(loc='right', bbox_to_anchor=(0.9, 1.07),
-          ncol=1, fancybox=True, shadow=True)
-
+phase_diagram.ax.legend(loc='right', bbox_to_anchor=(0.9, 1.07),ncol=1, fancybox=True, shadow=True)
 plt.show()
