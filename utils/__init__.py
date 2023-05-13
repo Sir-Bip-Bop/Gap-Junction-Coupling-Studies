@@ -11,3 +11,5 @@ if not __PROJECT_UTILS_IMPORTED__:
     from .connectivity import create_matrix
     from .firing_rate import compute_firing_rate
     from .load import load_HH, load_ISH, load_LIF, load_ML
+
+__PROJECT_UTILS_IMPORTED__ = True

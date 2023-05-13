@@ -1,7 +1,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt 
-from HH import HH_RK4
-from LIF import LIF_RK4
+from old.referencecode.HH import HH_RK4
+from old.referencecode.LIF import LIF_RK4
 
 def Read_Parameters(file_name):
     '''This function takes a file name, the one containing the parameters for the Excitatory and Inhibitory cases

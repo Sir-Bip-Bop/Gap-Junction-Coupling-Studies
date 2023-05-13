@@ -8,3 +8,5 @@ if not __PROJECT_MODELS_IMPORTED__:
     from .Ishikevich import IS_RK, rk_ish, rk_ish_Rossum, rk_ish_Rossum_parallel, IS_RK_2, rk_ish_2
     from .LIF import IF_RK, rk_if, rk_if_Rossum, rk_if_Rossum_parallel, IF_RK_2, rk_if_2
     from .morrislecar import ML_RK, rk_ml, rk_ml_Rossum, rk_ml_Rossum_parallel, ML_RK_2, rk_ml_2
+
+__PROJECT_MODELS_IMPORTED__ = True
