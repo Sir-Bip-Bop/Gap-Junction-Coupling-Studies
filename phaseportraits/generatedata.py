@@ -2,13 +2,11 @@ from typing import Any
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
-
-import utils_phase
-import models_phase
+import project
 
 
 #Simulation: We are runnign a simple simulation of the HH model, in order to obtain the real-time values of the different variables of the process
-params_HH = utils_phase.load_HH()
+params_HH = project.utils.load_HH()
 
 #Initial conditions & the intensity
 v0 = -65 
@@ -25,7 +23,7 @@ t_final = 300
 
 time = np.array([dt,t_final])
 
-data_HH, complete_HH = models_phase.rk_Icst(dt,t_final,2,[v0,v0],[n0,n0],[m0,m0],[h0,h0],*params_HH,I,Isyn,0,1)
+data_HH, complete_HH = project.models.rk_Icst(dt,t_final,2,[v0,v0],[n0,n0],[m0,m0],[h0,h0],*params_HH,I,Isyn,0,1)
 
 
 #After running the simulation, store all the obtained data into txt
