@@ -50,38 +50,24 @@ def HH_RK(y,order,gna,gk,gl,Ena,Ek,El,C,I,tau,k,v_neurons):
 
     return dydt
 
-def rk_simplemodel(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, Ek, El, C, I, Isyn, strength, tau, E_matrix, C_matrix):
+def rk_simplemodel(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, Ek, El, C, I, Isyn, strength, tau):
     ''' 
     Runge Kutta integration of the 4th order of the HH model, for various orders and numbers of neurons
     '''
-
-    #obtain the number of steps of the simulation
     Nsteps = int(t_final/dt)
-
-    #we are assuming we are working with arrays, so transform everything into one
     if type(y0) is int:
         y0 = [y0]
         n0 = [n0]
         m0 = [m0]
         h0 = [h0]
-        I = np.array( [ [I] , [I] ] )
-
-    #compute the number of neurons
+        I = [I]
     num_neurons = len(y0)
-
-    #we are only allowing a synaptic filtering order up to 5
     if order > 5:
-        print('We are changing down the filtering order to the maximum: 5')
         order = 5
-    #variables that store the signal
     Y = np.zeros((Nsteps,num_neurons*(4+order)))
     data = np.zeros((Nsteps,num_neurons))
-
-    #computing where is the end of our array, a tool that will help us later (to be concise)
     end = num_neurons * (4+order) -1
-
-    #assign the initial values
-    for i in range (0,num_neurons): 
+    for i in range (0,num_neurons): #assign the initial values
         Y[0,i*(4+order)] = y0[i]
         Y[0,1+i*(4+order)] = n0[i]
         Y[0,2+i*(4+order)] = m0[i]
@@ -90,23 +76,24 @@ def rk_simplemodel(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, Ek, El,
         #data we are outputing for convenience
         data[0,i] = y0[i]
 
-    #Runge-Kutta 4th order method 
     for i in range(0,Nsteps-1):
         for k in range(0,num_neurons):
-            k1 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)], order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order], E_matrix[k,:] )
-            #print(Y[i,0],Y[i,4+order]) 
-            k2 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k1, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order ], E_matrix[k,:] )
+            k1 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)], order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order] )
+            #print('k1',k1) a[0:4+1:4+1]
+            k2 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k1, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order ] )
             #print('k2',k2)
-            k3 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k2, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order ], E_matrix[k,:] )
+            k3 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k2, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order ] )
             
-            k4 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)] + dt * k3, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order ], E_matrix[k,:] )
+            k4 = HH_RK(Y[i, k*(4+order): (k+1) * (4+order)] + dt * k3, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, strength, Y[i, 0:end:4+order ] )
             
 
             Y[i + 1, k * (4 + order): (k+1) *(4+order)] = Y[i, k * (4+order): (k+1)*(4+order) ] + 1/6 * dt * (k1 + 2*k2 + 2*k3 + k4)
+
         for k in range(0,num_neurons):
             if i>0 and ( Y[i, k*(4+order)] >= Y [i-1,k*(4+order)]) and (Y[i,k*(4+order)] >= Y[i+1,k*(4+order)]) and Y[i,k*(4+order)] > 0:
                 for l in range(0,num_neurons):
-                        Y[i+1,l*(4+order) + 4 + order-1] = Y[i+1,l * (4+order) +4 + order-1] + C_matrix[k,l] *Isyn[k,l]
+                    if l != k:
+                        Y[i+1,l*(4+order) + 4 + order-1] = Y[i+1,l * (4+order) +4 + order-1] + Isyn[k,l]
             data[i+1,k] = Y[i+1,k*(4+order)]  
     return data, Y
 
@@ -386,3 +373,74 @@ def rk_simplemodel_Rossum_parallel(dt, t_final, order, y0, n0, m0, h0, gna, gk, 
     return_dict['Y_HH'] = Y 
     return_dict['Matrix_HH'] = np.array(matrix.todense())
 
+def rk_HH_Rossum(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, Ek, El, C, I, Isyn, strength, tau, E_matrix, C_matrix, return_dict):
+    ''' 
+    Runge Kutta integration of the 4th order of the HH model, for various orders and numbers of neurons
+    '''
+
+    #obtain the number of steps of the simulation
+    Nsteps = int(t_final/dt)
+
+    #we are assuming we are working with arrays, so transform everything into one
+    if type(y0) is int:
+        y0 = [y0]
+        n0 = [n0]
+        m0 = [m0]
+        h0 = [h0]
+        I = np.array( [ [I] , [I] ] )
+
+    #compute the number of neurons
+    num_neurons = len(y0)
+
+    #we are only allowing a synaptic filtering order up to 5
+    if order > 5:
+        print('We are changing down the filtering order to the maximum: 5')
+        order = 5
+
+    matrix = dok_matrix((num_neurons,int(t_final/dt)))
+        
+    #variables that store the signal
+    Y = np.zeros((Nsteps,num_neurons))
+    N = np.zeros((Nsteps,num_neurons))
+    M = np.zeros((Nsteps,num_neurons))
+    H = np.zeros((Nsteps,num_neurons))
+    synaptic = np.zeros((Nsteps,order*num_neurons))
+
+    #assign the initial values
+    for i in range (0,num_neurons): 
+        Y[0,i] = y0[i]
+        N[0,i] = n0[i]
+        M[0,i] = m0[i]
+        H[0,i] = h0[i]
+    #print(N[0,:],M[0,:],H[0,:],n0,m0,h0)
+
+    check = np.zeros(num_neurons)
+
+    #Runge-Kutta 4th order method 
+    for i in range(0,Nsteps-1):
+        k1 = HH_RK_2(Y[i,:], N[i,:], M[i,:], H[i,:], synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix)
+        k2 = HH_RK_2(np.float64(Y[i,:]+ 0.5*dt*k1[0]),N[i,:] + 0.5*dt*k1[1] , M[i,:] + 0.5*dt*k1[2], H[i,:] + 0.5*dt*k1[3],synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix )
+        k3 = HH_RK_2(np.float64(Y[i,:]+ 0.5*dt*k2[0]),N[i,:] + 0.5*dt*k2[1] , M[i,:] + 0.5*dt*k2[2], H[i,:] + 0.5*dt*k2[3],synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix )            
+        k4 = HH_RK_2(np.float64(Y[i,:]+dt*k3[0]),N[i,:] + dt*k3[1] , M[i,:] + dt*k3[2], H[i,:] + dt*k3[3],synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, strength, E_matrix  )
+            
+        Y[i + 1, :] = Y[i, :] + 1/6 * dt * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0])
+        N[i + 1, :] = N[i, :] + 1/6 * dt * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1])
+        M[i + 1, :] = M[i, :] + 1/6 * dt * (k1[2] + 2*k2[2] + 2*k3[2] + k4[2])
+        H[i + 1, :] = H[i, :] + 1/6 * dt * (k1[3] + 2*k2[3] + 2*k3[3] + k4[3])
+
+        #searching for spikes (positive local maximums)
+        if(i>0):
+            spikes =  np.where( (Y[i,:] > 0))
+            if len(spikes[0]) > 0:
+                for spike_ind in spikes[0]:
+                    if check[spike_ind] == 0:
+                        check[spike_ind] = 1
+                        matrix[spike_ind,i] = 1
+                        synaptic[i+1,(order-1)*num_neurons:order*num_neurons] = synaptic[i+1,(order-1)*num_neurons:order*num_neurons] + C_matrix[spike_ind,:] *Isyn
+        
+            negatives = np.where(Y[i,:]< 0)
+            if len(negatives[0]) > 0:
+                for index in negatives[0]:
+                    check[index] = 0
+
+    return Y, matrix 
