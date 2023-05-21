@@ -10,7 +10,7 @@ def compute_van_Rossum_distance(spike_matrix,t,t_R,dt_og):
     t_R - time constant of exponential kernel
     '''
     dt = (t[len(t)-1] - t[0] ) / len(t) #ms
-    t_R = t_R / dt_og #ms^ -1
+    t_R = t_R / dt_og #ms
     if type(spike_matrix) is not np.ndarray:
         spike_matrix = np.array(spike_matrix.todense())
     N = len(spike_matrix[:,0])  
