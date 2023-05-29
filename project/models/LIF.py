@@ -397,7 +397,7 @@ def rk_if_2_scale_synaptic(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,
                         data[i+1,spike_ind] = w 
                         Y[i+1,spike_ind] = Vr 
                         synaptic[i+1,(order-1)*num_neurons:order*num_neurons] = synaptic[i+1,(order-1)*num_neurons:order*num_neurons] + C_matrix[spike_ind,:] *Isyn / num_connections[spike_ind]
-                        Y[i+1,:] = Y[i+1,:] +  C_matrix[spike_ind,:] *spikelet / num_connections[spike_ind]
+                        Y[i+1,:] = Y[i+1,:] +  E_matrix[spike_ind,:] *spikelet 
             else:
                 data[i+1,:] = Y[i+1,:]
         else:

@@ -4,8 +4,9 @@ def load_HH(gna=30,gk=5,gl=0.1,Ena=30,Ek=-90,El=-70,C=1):
     If the function is called without any parameters, it will return the base values of:
     'gna = 30, gk = 5, gl = 0.1, Ena = 30, Ek = -90, El = -70, C =1 '
 
-    If the function is called with a parameter and its value specified, it will change that specific value.
-    The order matters
+    Parameters:
+        gna (float, optional):
+            constant re
     '''
     return [gna,gk,gl,Ena,Ek,El,C]
 

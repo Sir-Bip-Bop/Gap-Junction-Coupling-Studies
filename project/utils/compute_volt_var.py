@@ -1,7 +1,22 @@
+import numpy as np 
+
 def compute_volt_var(data):
     '''
-    Computes the synchrony measure of the average voltage and variance for a given set of voltage traces,
-    data - voltage traces, each row being a different neuron
+    Computes the mean of the voltage in function of time and neurons, the variance of the mean, and the variance of each individual neuron.
+
+    Parameters:
+        data (list[float]):
+            Voltage traces with each row corersponding one neuron.
+
+    Returns:
+        mean_voltage (float):
+            The Mean voltage in function of time of the different neurons
+        total_mean (float):
+            The mean of the voltage of each neuron.
+        ind_variance (float):
+            The variance of each individual neuron.
+        total_variance (float):
+            The variance of mean_voltage
     '''
     data  = data.T
 

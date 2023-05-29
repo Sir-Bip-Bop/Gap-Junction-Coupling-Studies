@@ -2,8 +2,15 @@ import numpy as np
 
 def compute_chi(data):
     '''
-    Computes the synchrony measure chi for a given set of voltage traces,
-    data - voltage traces, each row being a different neuron
+    Computes the value of Chi, a synchrony measurement that compares the variance of individual voltage traces and the variance of the mean of the voltages.
+
+    Parameters:
+        data (list[float]):
+            Voltage traces with each row corresponding one neuron.
+
+    Returns:
+        chi (float):
+            The value of Chi.
     '''
 
     #calculate the average voltage as a function of time
