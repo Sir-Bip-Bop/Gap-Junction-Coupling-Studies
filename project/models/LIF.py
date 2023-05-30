@@ -100,9 +100,14 @@ def rk_if_Rossum(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,tau,spikel
                 for l in range(0,num_neurons):
                     if l != k:
                         Y[i+1,l * (1+order) +order] = Y[i+1,l*(1+order) + order] + Isyn[k,l]
-                        Y[i+1,l * (1+order)] = Y[i+1,l *(1+order)] + spikelet
+                        if strength != 0:
+                            Y[i+1,l * (1+order)] = Y[i+1,l *(1+order)] + spikelet
             else:
                 data[i+1,k] = Y[i+1,k *(1+order)]
+        for k in range(0,num_neurons):
+            if Y[i+1,k * (1+order)] >= Vth:
+                Y[i+1, k * (1+order)] = Vr 
+        
     return data, Y, matrix
 
 
@@ -371,6 +376,7 @@ def rk_if_2_scale_synaptic(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,
         data[0,i] = y0[i]
 
     check = np.zeros(num_neurons)
+    check_aux = check
 
     #compute the number of connections of each neuron
     num_connections = np.zeros(num_neurons)
@@ -391,13 +397,17 @@ def rk_if_2_scale_synaptic(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,
             if len(spikes[0]) > 0:
                 for spike_ind in spikes[0]:
                     if check[spike_ind] == 0:
-                        check[spike_ind] = 1
+                        check_aux[spike_ind] = 1
                         matrix[spike_ind,i] = 1
                         data[i+1,:] = Y[i+1,:]
                         data[i+1,spike_ind] = w 
                         Y[i+1,spike_ind] = Vr 
                         synaptic[i+1,(order-1)*num_neurons:order*num_neurons] = synaptic[i+1,(order-1)*num_neurons:order*num_neurons] + C_matrix[spike_ind,:] *Isyn / num_connections[spike_ind]
-                        Y[i+1,:] = Y[i+1,:] +  E_matrix[spike_ind,:] *spikelet 
+                        if strength != 0:
+                            Y[i+1,:] = Y[i+1,:] +  E_matrix[spike_ind,:] *spikelet 
+                for spike_ind in spikes[0]:
+                    if check[spike_ind] == 0 :
+                        Y[i+1,spike_ind] = Vr
             else:
                 data[i+1,:] = Y[i+1,:]
         else:
@@ -406,7 +416,7 @@ def rk_if_2_scale_synaptic(dt,t_final,order,y0,Vth,Vr,w,gl,El,C,I,Isyn,strength,
         negatives = np.where(Y[i,:]< 0)
         if len(negatives[0]) > 0:
             for index in negatives[0]:
-                check[index] = 0 
-
+                check_aux[index] = 0 
+        check = check_aux
 
     return data, Y, matrix, synaptic
