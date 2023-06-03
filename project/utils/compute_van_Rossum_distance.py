@@ -73,7 +73,6 @@ def compute_van_Rossum_distance_2(spike_matrix,t,t_R):
 
     #compute the time step of the simulation
     dt = (t[len(t)-1] - t[0] ) / len(t) 
-
     #we need to work with a np.ndarray for the convolution, if it is a sparse_matrix, change it to that type
     if type(spike_matrix) is not np.ndarray:
         spike_matrix = np.array(spike_matrix.todense())
