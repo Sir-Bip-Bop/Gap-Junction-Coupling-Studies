@@ -23,7 +23,7 @@ t_final = 300
 
 time = np.array([dt,t_final])
 
-data_HH, complete_HH = project.models.rk_Icst(dt,t_final,2,[v0,v0],[n0,n0],[m0,m0],[h0,h0],*params_HH,I,Isyn,0,1)
+data_HH, complete_HH, a = project.models.HH_Neuron_Pairs(dt,t_final,2,[v0,v0],[n0,n0],[m0,m0],[h0,h0],*params_HH,I,Isyn,0,1)
 
 
 #After running the simulation, store all the obtained data into txt
