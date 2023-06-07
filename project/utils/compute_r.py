@@ -2,7 +2,7 @@ import numpy as np
 from scipy.sparse import dok_matrix 
 import scipy as sp 
 
-def compute_Reliability(spike_matrix,t,t_R):
+def compute_Reliability(spike_matrix,t,t_R,num_neurons):
     '''
     Computes the value of Reliability, a synchrony measurement that computes the variance of a convoluted spike train that is the sum of the spike trains of each neuron.
 
@@ -39,7 +39,6 @@ def compute_Reliability(spike_matrix,t,t_R):
 
     #compute the measurements of reliability
     reliability = 1 / t[len(t) - 1] * np.trapz(np.square(Convolved_matrix), dx = dt) - np.square( 1 / t[len(t) - 1] * np.trapz(Convolved_matrix,dx =dt))
-    reliability_max= ( 4 * num_spikes / t_R / ( 2 * t[len(t)-1] ) - 4 * num_spikes * num_spikes / (t[len(t)-1] * t[len(t)-1]) )
+    reliability_max= ( num_neurons * num_neurons * num_spikes / t_R / ( 2 * t[len(t)-1] ) - num_neurons * num_neurons * num_spikes * num_spikes / (t[len(t)-1] * t[len(t)-1]) )
     #reliability_max = 1
-    
     return reliability/reliability_max, Convolved_matrix
