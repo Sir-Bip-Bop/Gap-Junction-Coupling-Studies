@@ -646,3 +646,181 @@ def HH_Neuron_Network_tests(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena
         return_dict['Y_HH'] = [Y,N,M,H] 
         return_dict['Matrix_HH'] = np.array(matrix.todense())
         return_dict['synaptic_HH'] = synaptic
+
+def HH_Equation_Pairs_tests(y,order,gna,gk,gl,Ena,Ek,El,C,I,tau,gap_junction,v_neurons,gap_current,synaptic_current):
+    '''
+    Algorithm that integrates the equations of the Hodgkin-Huxley model, as well as the synaptic filter.
+
+    Parameters:
+        y (tuple[float]):
+            The signal of the Neuron - Voltage,  recovery variables : n,m,and h, and Synaptic Current.
+        order (int):
+            The order of the synaptic filter - Max value of 5
+        gna (float):
+            Conductance of the Na channel
+        gk (float):
+            Conductance of the K channel
+        gl (float):
+            Conductance of the leak channel
+        Ena (float):
+            Rest voltage of the Na channel
+        Ek (float):
+            Rest voltage of the K channel
+        El (float):
+            Rest voltage of the leak channel
+        C (float):
+            Total conductance of the neuron - Speed of the differential equation
+        I (float):
+            Injected Current
+        tau (float):
+            Time constant for the synaptic filter
+        gap_junction (float): 
+            Gap junction strength
+        v_neurons (float):
+            Voltage of the neighbouring neurons
+
+    Returns:
+        dydt (tuple[float]):
+            The result of integrating the input signal and the synaptic current
+    '''
+
+    #Definition of the reversal potntial of the neuron, in this case it is inhibitory
+    Vreversal = -80
+    vt = -58 
+
+    #HH differential equations (voltage and recovery variables)
+    Ina = gna * y[2]**3 * y[3] * (y[0] - Ena)
+    Ik = gk * y[1]**4 * (y[0]- Ek)
+    gap_current[:] = gap_junction * np.sum( (y[0] - v_neurons))
+    synaptic_current[:] = y[4] * (y[0] - Vreversal)
+    dvdt = (-Ina -Ik - gl * (y[0] - El) + I - gap_junction * np.sum( (y[0] - v_neurons)) -y[4] * (y[0] - Vreversal)) / C 
+    dmdt = am_pairs(y[0],vt) * (1-y[2]) - bm_pairs(y[0],vt) * y[2]
+    dhdt = ah_pairs(y[0],vt) * (1-y[3]) - bh_pairs(y[0],vt) * y[3]
+    dndt = an_pairs(y[0],vt) * (1-y[1]) - bn_pairs(y[0],vt) * y[1]
+
+    #Computing the synaptic filtering
+    y = np.append(y,0)
+    for i in range(4,4+order):
+        y[i] =  -y[i] / tau + y[i+1] 
+
+    #Returning the data, making sure it is in the correct (numpy array) format
+    dydt = [dvdt,dndt,dmdt,dhdt]
+    dydt = np.array(dydt,dtype=object)
+    for i in range(4,4+order):
+        dydt = np.append(dydt,float(y[i]))
+
+    return dydt
+
+def HH_Neuron_Pairs_test(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, Ek, El, C, I, Isyn, gap_junction, tau, gap_current,synaptic_current, return_dict=0):
+    ''' 
+    Runge-Kutta integration of the 4th order of the HH model in the case of pairs of two neurons or single neurons
+
+    Parameters:
+        dt (float):
+            Time step of the simulation
+        t_final (float):
+            Final time of the simulation
+        order (int):
+            Order of the synaptic filtering (maximum value = 5)
+        y0 (float):
+            Initial voltage of the system
+        n0 (float):
+            Initial value of the n recovery variable
+        m0 (float):
+            Initial value of the m recovery variable
+        h0 (float):
+            Initial value of the h recovery variable
+        gna (float):
+            Conductance of the Na channel
+        gk (float):
+            Conductance of the K channel
+        gl (float):
+            Conductance of the leak channel
+        Ena (float):
+            Rest voltage of the Na channel
+        Ek (float):
+            Rest voltage of the K channel
+        El (float):
+            Rest voltage of the leak channel
+        C (float):
+            Total conductance of the neuron - Speed of the differential equation
+        I (float):
+            Injected Current
+        Isyn (float):
+            Strength of the chemical synaptse
+        gap_junction (float): 
+            Gap junction strength
+        tau (float):
+            Time constant for the synaptic filter
+        return_dict (dict or 0, optional ):
+            This should be  0 in the case you don't need to parallel processing. In the case it is being used, this dictionary should be manager.dict()
+            (see synchrony_measurements.ipynb for examples)
+
+    Returns: 
+        data (tuple[tuple[float,float]]):
+            The voltage of each of the neurons over time
+        Y (tuple[tuple[float,float]]):
+            The complete signal of each of the neurons - Voltage, recovery variable, and synaptic current
+        matrix (dok_matrix):
+            A sparse matrix of the spike times of the simulation
+    '''
+    
+    #Copmuting the number of steps of the simulation, and converting int to np.array for the case of single neurons
+    Nsteps = int(t_final/dt)
+    if type(y0) is int:
+        y0 = [y0]
+        n0 = [n0]
+        m0 = [m0]
+        h0 = [h0]
+        I = [I]
+    num_neurons = len(y0)
+
+    #Setting the limit of the synaptic filtering order
+    if order >5:
+        print('The maximum order of t he synaptic filter is 5')
+        order = 5
+
+    #Initialisating the variables we need for the simulation 
+    matrix = dok_matrix((num_neurons,int(t_final/dt)))
+    Y = np.zeros((Nsteps,num_neurons*(4+order)))
+    data = np.zeros((Nsteps,num_neurons))
+    end = num_neurons * (4+order) -1
+
+    #Setting the initial conditions of the system
+    for i in range (0,num_neurons): 
+        Y[0,i*(4+order)] = y0[i]
+        Y[0,1+i*(4+order)] = n0[i]
+        Y[0,2+i*(4+order)] = m0[i]
+        Y[0,3+i*(4+order)] = h0[i]
+        data[0,i] = y0[i]
+
+    check = np.zeros(num_neurons)
+
+    #Runge-Kutta 4th order loop
+    for i in range(0,Nsteps-1):
+        for k in range(0,num_neurons):
+            k1 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)], order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order],gap_current[i,k],synaptic_current[i,k] )
+            k2 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k1, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order ] ,gap_current[i,k], synaptic_current[i,k])
+            k3 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k2, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order ], gap_current[i,k], synaptic_current[i,k] )
+            k4 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)] + dt * k3, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order ] ,gap_current[i,k],synaptic_current[i,k])
+            
+            Y[i + 1, k * (4 + order): (k+1) *(4+order)] = Y[i, k * (4+order): (k+1)*(4+order) ] + 1/6 * dt * (k1 + 2*k2 + 2*k3 + k4)
+
+        #Checking for spikes
+        for k in range(0,num_neurons):
+            if i > 0 and Y[i,k*(4+order)] > 10 and check[k] == 0:
+                matrix[k,i] = 1
+                check[k] = 1
+                for l in range(0,num_neurons):
+                    if l != k:
+                        Y[i+1,l*(4+order) + 4 + order-1] = Y[i+1,l * (4+order) +4 + order-1] + Isyn[k,l]
+            data[i+1,k] = Y[i+1,k*(4+order)]  
+            if data[i+1,k] < 0:
+                check[k] = 0
+
+    if return_dict == 0:
+        return data, Y, matrix
+    else:
+        return_dict['data_HH'] = data 
+        return_dict['Y_HH'] = Y 
+        return_dict['Matrix_HH'] = np.array(matrix.todense())

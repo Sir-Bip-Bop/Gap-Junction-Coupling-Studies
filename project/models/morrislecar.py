@@ -599,3 +599,188 @@ def ML_Neuron_Network_tests(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt
         return_dict['Y_ML'] = [Y,W] 
         return_dict['Matrix_ML'] = np.array(matrix.todense())
         return_dict['synaptic_ML'] = synaptic
+
+def ML_Equation_Pairs_tests(y, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I, tau, gap_junction, v_neurons,gap_current,synaptic_current ):
+    '''
+    Algorithm that integrates the equations of the modified Morris-Lecar model, as well as the synaptic filter.
+
+    Parameters:
+        y (tuple[float]):
+            The signal of the Neuron - Voltage,  recovery variable, and Synaptic Current.
+        order (int):
+            The order of the synaptic filter - Max value of 5
+        psi (float, optional):
+            Scaling constant
+        V1 (float, optinoal):
+            Potential at wich m_inf = 0.5
+        V2 (float, optional):
+            Reciprocal of the voltage dependance of m_inf
+        V3 (float, optional):
+            Potential at wich w_inf = 0.5
+        V4 (float, optional):
+            Reciprocal of the voltage dependance of w_inf
+        gna (float, optional):
+            Conductance of the Na channel
+        gk (float, optional):
+            Conductance of the K channel
+        gshunt (float, optional):
+            Conductance of the Shunt channel
+        Ena (float, optional):
+            Resting potential of the Na channel
+        Ek (float, optional):
+            Resting potential of the K channel
+        Eshunt (float, optinoal):
+            Resting potential of the shunt channel
+        C (float):
+            Total conductance of the neuron - Speed of the differential equation
+        I (float):
+            Injected Current
+        tau (float):
+            Time constant for the synaptic filter
+        gap_junction (float): 
+            Gap junction strength
+        v_neurons (float):
+            Voltage of the neighbouring neurons
+
+    Returns:
+        dydt (tuple[float]):
+            The result of integrating the input signal and the synaptic current
+    '''
+    
+    #Definition of the reversal potntial of the neuron, in this case it is inhibitory
+    Vreversal = -80
+
+    #HH differential equations (voltage and recovery variable)
+    minf = 0.5 * (1 + np.tanh( ((y[0] - V1 )/ V2)))
+    Iion = gna * minf * (y[0] - Ena) + gk * y[1] * (y[0] -Ek) + gshunt * (y[0] - Eshunt)
+    dvdt = ( - Iion - gap_junction * np.sum(y[0] - v_neurons) + I - y[2] * (y[0]- Vreversal)) / C
+    winf = 0.5 * (1 + np.tanh( (y[0] - V3) / V4))
+    dwdt = psi * (winf - y[1])*np.cosh( (y[0] - V3) / 2 / V4)
+
+    gap_current[:] = gap_junction * np.sum(y[0] - v_neurons)
+    synaptic_current[:] = y[2] * (y[0]- Vreversal)
+    #Computing the synaptic filtering
+    y = np.append(y,0)
+    for i in range(2, 2+order):
+        y[i] = -y[i] / tau + y[i+1]
+
+    #Returning the data, making sure it is in the correct (numpy array) format
+    dydt = [dvdt,dwdt]
+    dydt = np.array(dydt,dtype=object)
+    for i in range(2, 2+order):
+        dydt = np.append(dydt,float(y[i]))
+    return dydt
+
+def ML_Neuron_Pairs_tests(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt,Ena,Ek,Eshunt,C,I,Isyn,gap_junction,tau,gap_current,synaptic_current,return_dict=0):
+    ''' 
+    Runge-Kutta integration of the 4th order of the ML model in the case of pairs of two neurons or single neurons
+
+    Parameters:
+        dt (float):
+            Time step of the simulation
+        t_final (float):
+            Final time of the simulation
+        order (int):
+            Order of the synaptic filtering (maximum value = 5)
+        y0 (float):
+            Initial voltage of the system
+        w0 (float):
+            Initial value of the recovery variable
+        psi (float, optional):
+            Scaling constant
+        V1 (float, optinoal):
+            Potential at wich m_inf = 0.5
+        V2 (float, optional):
+            Reciprocal of the voltage dependance of m_inf
+        V3 (float, optional):
+            Potential at wich w_inf = 0.5
+        V4 (float, optional):
+            Reciprocal of the voltage dependance of w_inf
+        gna (float, optional):
+            Conductance of the Na channel
+        gk (float, optional):
+            Conductance of the K channel
+        gshunt (float, optional):
+            Conductance of the Shunt channel
+        Ena (float, optional):
+            Resting potential of the Na channel
+        Ek (float, optional):
+            Resting potential of the K channel
+        Eshunt (float, optinoal):
+            Resting potential of the shunt channel
+        C (float):
+            Total conductance of the neuron - Speed of the differential equation
+        I (float):
+            Injected Current
+        Isyn (float):
+            Strength of the chemical synaptse
+        gap_junction (float): 
+            Gap junction strength
+        tau (float):
+            Time constant for the synaptic filter
+        return_dict (dict or 0, optional ):
+            This should be  0 in the case you don't need to parallel processing. In the case it is being used, this dictionary should be manager.dict()
+            (see synchrony_measurements.ipynb for examples)
+
+    Returns: 
+        data (tuple[tuple[float,float]]):
+            The voltage of each of the neurons over time
+        Y (tuple[tuple[float,float]]):
+            The complete signal of each of the neurons - Voltage, recovery variable, and synaptic current
+        matrix (dok_matrix):
+            A sparse matrix of the spike times of the simulation
+    '''
+
+    #Copmuting the number of steps of the simulation, and converting int to np.array for the case of single neurons
+    Nsteps = int(t_final/dt)
+    if type(y0) is int:
+        y0 = [y0]
+        I = np.array( [ [I], [I] ])
+    num_neurons = len(y0)
+    check = np.zeros(num_neurons)
+    
+    #Setting the limit of the synaptic filtering order
+    if order >5:
+        print('The maximum order of t he synaptic filter is 5')
+        order = 5
+
+    #Initialisating the variables we need for the simulation 
+    matrix = dok_matrix((num_neurons,int(t_final/dt)))
+    Y = np.zeros((Nsteps, num_neurons * (2+order)))
+    data = np.zeros((Nsteps, num_neurons))
+    end = num_neurons * (2+order) -1
+
+    #Setting the initial conditions of the system
+    for i in range (0,num_neurons):
+        Y[0,i*(2+order)] = y0[i]
+        Y[0,1 + i*(2+order)] = w0[i]
+        data[0,i] = y0[i]
+
+    #Runge-Kutta 4th order loop
+    for i in range(0,Nsteps - 1):
+        for k in range(0,num_neurons):
+            k1 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)], order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order],gap_current[i,k],synaptic_current[i,k] )
+            k2 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)] + 0.5*dt*k1, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order],gap_current[i,k],synaptic_current[i,k] )
+            k3 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)] + 0.5*dt*k2, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order], gap_current[i,k],synaptic_current[i,k])
+            k4 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)] + dt * k3, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order],gap_current[i,k],synaptic_current[i,k] )
+
+            Y[i + 1, k * (2 + order): (k+1) *(2+order)] = Y[i, k * (2+order): (k+1)*(2+order) ] + 1/6 * dt * (k1 + 2*k2 + 2*k3 + k4)
+
+        #Checking for spikes
+        for k in range(0,num_neurons):
+            if i > 0 and Y[i,k*(2+order)] > 10 and check[k] == 0:
+                matrix[k,i] = 1
+                check[k] = 1
+                for l in range(0,num_neurons):
+                    if l != k:
+                        Y[i+1,l*(2+order) + 2 + order-1] = Y[i+1,l * (2+order) +2 + order-1] + Isyn[k,l]
+            data[i+1,k] = Y[i+1,k*(2+order)]  
+            if data[i+1,k] < 0:
+                check[k] = 0
+
+    if return_dict == 0:
+        return data, Y, matrix
+    else:
+        return_dict['data_ML'] = data 
+        return_dict['Y_ML'] = Y 
+        return_dict['Matrix_ML'] = np.array(matrix.todense())

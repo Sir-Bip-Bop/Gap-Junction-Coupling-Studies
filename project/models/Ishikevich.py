@@ -562,3 +562,171 @@ def IZH_Neuron_Network_tests(dt,t_final,order,y0,u0,I,Isyn,C,vr,vt,rheobase_stre
         return_dict['Y_IZH'] = Y 
         return_dict['Matrix_IZH'] = np.array(matrix.todense())
         return_dict['synaptic_IZH'] = synaptic
+
+def IZH_Equation_Pairs_tests(y,order,C,I,vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,v_neurons,gap_current,synaptic_current):
+    '''
+    Algorithm that integrates the equations of the Izhikevich model, as well as the synaptic filter.
+
+    Parameters:
+        y (tuple[float]):
+            The signal of the Neuron - Voltage, recovery variable, and Synaptic Current.
+        order (int):
+            The order of the synaptic filter - Max value of 5
+        C (float):
+            Total conductance of the neuron - Speed of the differential equation
+        I (float):
+            Injected Current
+        vr (float):
+            Rest Voltage
+        vt (float):
+            Check
+        gap_junction (float): 
+            Gap junction strength
+        a (float):
+            Recovery variable time constant
+        b (float):
+            Neuron's input resistance
+        rheobase_strength (float):
+            Neuron's rheobase strength
+        scale_u (float):
+            Scale of the recovery variable
+        tau (float):
+            Time constant for the synaptic filter
+        v_neurons (float):
+            Voltage of the neighbouring neurons
+
+    Returns:
+        dydt (tuple[float]):
+            The result of integrating the input signal and the synaptic current
+    '''
+    #Definition of the reversal potntial of the neuron, in this case it is inhibitory
+    Vreversal = -80
+
+   #IZH differential equations (voltage and recovery variable)
+    dvdt = (rheobase_strength * (y[0] - vr) * (y[0] - vt) - scale_u * y[1] + I - gap_junction * np.sum(y[0]-v_neurons) - y[2] *(y[0]-Vreversal))   / C
+    dudt = a * (b*(y[0] - vr) - y[1])
+    gap_current[:] = gap_junction * np.sum(y[0]-v_neurons)
+    synaptic_current[:] = y[2] *(y[0]-Vreversal)
+
+    #Computing the synaptic filtering
+    y = np.append(y,0)
+    for i in range(2,2+order):
+        y[i] = -y[i] / tau + y[i+1]
+
+    #Returning the data, making sure it is in the correct (numpy array) format
+    dydt = [dvdt,dudt]
+    dydt = np.array(dydt,dtype=object)
+    for i in range(2,2+order):
+        dydt = np.append(dydt,float(y[i]))
+
+    return dydt 
+
+def IZH_Neuron_Pairs_tests(dt,t_final,order,y0,u0,I,Isyn,C,vr,vt,rheobase_strength,a,b,c,d,vpeak,scale_u,gap_junction,tau,gap_current,synaptic_current,return_dict = 0):
+    ''' 
+    Runge-Kutta integration of the 4th order of the IZH model in the case of pairs of two neurons or single neurons
+
+    Parameters:
+        dt (float):
+            Time step of the simulation
+        t_final (float):
+            Final time of the simulation
+        order (int):
+            Order of the synaptic filtering (maximum value = 5)
+        y0 (float):
+            Initial voltage of the system
+        u0 (float):
+            Initial value of the recovery variable of the system
+        I (float):
+            Injected Current
+        Isyn (float):
+            Strength of the chemical synaptse
+        C (float):
+            Total conductance of the neuron - Speed of the differential equation
+        vr (float):
+            Rest Voltage
+        vt (float):
+            Check
+        rheobase_strength (float):
+            Neuron's rheobase strength
+        a (float):
+            Recovery variable time constant
+        b (float):
+            Neuron's input resistance
+        c (float):
+            Voltage reset value
+        d (float):  
+            Injected current after a spike
+        vpeak (float):
+            Voltage of the peak of the spike
+        scale_u (float):
+            Scale of the recovery variable
+        gap_junction (float): 
+            Gap junction strength
+        tau (float):
+            Time constant for the synaptic filter
+        return_dict (dict or 0, optional ):
+            This should be  0 in the case you don't need to parallel processing. In the case it is being used, this dictionary should be manager.dict()
+            (see synchrony_measurements.ipynb for examples)
+
+    Returns: 
+        data (tuple[tuple[float,float]]):
+            The voltage of each of the neurons over time
+        Y (tuple[tuple[float,float]]):
+            The complete signal of each of the neurons - Voltage, recovery variable, and synaptic current
+        matrix (dok_matrix):
+            A sparse matrix of the spike times of the simulation
+    '''
+
+    #Copmuting the number of steps of the simulation, and converting int to np.array for the case of single neurons
+    Nsteps = int(t_final/dt)
+    if type(y0) is int:
+        y0 = [y0]
+        I = np.array( [ [I] , [I] ] )
+    num_neurons = len(y0)
+
+    #Setting the limit of the synaptic filtering order
+    if order >5:
+        print('The maximum order of t he synaptic filter is 5')
+        order = 5
+
+    #Initialisating the variables we need for the simulation
+    Y = np.zeros( (Nsteps, num_neurons * (2 + order)))
+    matrix = dok_matrix((num_neurons,int(t_final/dt)))
+    end = num_neurons * (2 + order) -1
+    data = np.zeros( (Nsteps, num_neurons))
+
+    #Setting the initial conditions of the system
+    for i in range(0,num_neurons):
+        Y[0,i*(2+order)] = y0[i]
+        Y[0,1+i*(2+order)] = u0[i]
+        data[0,i] = y0[i]
+
+    #Runge-Kutta 4th order loop
+    for i in range(0,Nsteps - 1):
+        for k in range(0,num_neurons):
+            k1 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] ,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,k],synaptic_current[i,k])
+            k2 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] +0.5 * dt * k1,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,k],synaptic_current[i,k])
+            k3 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] +0.5 * dt * k2,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,k],synaptic_current[i,k])
+            k4 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] + dt * k3,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,k],synaptic_current[i,k])
+
+            Y[i+1,k*(2+order):(k+1)*(2+order)] = Y[i,k*(2+order):(k+1)*(2+order)] + (1/6)*dt*(k1+2*k2+2*k3+k4)
+
+        #Checking for spikes
+        for k in range(0,num_neurons):
+            if Y[i+1, k * (2 + order)] >= vpeak:
+                Y[i+1, k * (2+order)] = c 
+                Y[i, k * (2 +order)] = vpeak #no influence
+                Y[i+1, 1 + k * (2+order)] = Y[i+1, 1+k*(2+order)] + d
+                matrix[k,i] = 1
+                for l in range(0,num_neurons):
+                    if l!= k:
+                        Y[i+1, l *(2+order) + 2 + order -1] = Y[i+1, l*(2+order) + 2 +order - 1] + Isyn[k,l]
+
+            data[i+1,k] = Y[i+1,k*(2+order)]
+
+    if return_dict == 0:
+        return data, Y, matrix
+    else:
+        return_dict['data_IZH'] = data 
+        return_dict['Y_IZH'] = Y 
+        return_dict['Matrix_IZH'] = np.array(matrix.todense())

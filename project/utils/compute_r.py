@@ -29,7 +29,10 @@ def compute_Reliability(spike_matrix,t,t_R,num_neurons):
         spike_matrix = np.array(spike_matrix.todense())
 
     #Compute the number of spikes
-    num_spikes =  len((np.argwhere(np.array(spike_matrix)[0,:]>0)).flatten()) + len((np.argwhere(np.array(spike_matrix)[1,:]>0)).flatten())
+    num_spikes = 0 
+    for i in range(0,num_neurons):
+        num_spikes =  num_spikes + len((np.argwhere(np.array(spike_matrix)[i,:]>0)).flatten())
+    num_spikes = num_spikes / num_neurons
 
     #Compute the kernel, and convolve the sum spike train with it
     joined_matrix = np.sum(spike_matrix,axis=0)
