@@ -647,7 +647,7 @@ def HH_Neuron_Network_tests(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena
         return_dict['Matrix_HH'] = np.array(matrix.todense())
         return_dict['synaptic_HH'] = synaptic
 
-def HH_Equation_Pairs_tests(y,order,gna,gk,gl,Ena,Ek,El,C,I,tau,gap_junction,v_neurons,gap_current,synaptic_current):
+def HH_Equation_Pairs_tests(y,order,gna,gk,gl,Ena,Ek,El,C,I,tau,gap_junction,v_neurons,gap_current,synaptic_current,k):
     '''
     Algorithm that integrates the equations of the Hodgkin-Huxley model, as well as the synaptic filter.
 
@@ -691,8 +691,8 @@ def HH_Equation_Pairs_tests(y,order,gna,gk,gl,Ena,Ek,El,C,I,tau,gap_junction,v_n
     #HH differential equations (voltage and recovery variables)
     Ina = gna * y[2]**3 * y[3] * (y[0] - Ena)
     Ik = gk * y[1]**4 * (y[0]- Ek)
-    gap_current[:] = gap_junction * np.sum( (y[0] - v_neurons))
-    synaptic_current[:] = y[4] * (y[0] - Vreversal)
+    gap_current[k] = gap_junction * np.sum( (y[0] - v_neurons))
+    synaptic_current[k] = y[4] * (y[0] - Vreversal)
     dvdt = (-Ina -Ik - gl * (y[0] - El) + I - gap_junction * np.sum( (y[0] - v_neurons)) -y[4] * (y[0] - Vreversal)) / C 
     dmdt = am_pairs(y[0],vt) * (1-y[2]) - bm_pairs(y[0],vt) * y[2]
     dhdt = ah_pairs(y[0],vt) * (1-y[3]) - bh_pairs(y[0],vt) * y[3]
@@ -799,10 +799,10 @@ def HH_Neuron_Pairs_test(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, E
     #Runge-Kutta 4th order loop
     for i in range(0,Nsteps-1):
         for k in range(0,num_neurons):
-            k1 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)], order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order],gap_current[i,k],synaptic_current[i,k] )
-            k2 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k1, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order ] ,gap_current[i,k], synaptic_current[i,k])
-            k3 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k2, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order ], gap_current[i,k], synaptic_current[i,k] )
-            k4 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)] + dt * k3, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order ] ,gap_current[i,k],synaptic_current[i,k])
+            k1 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)], order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order],gap_current[i,:],synaptic_current[i,:],k )
+            k2 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k1, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order ] ,gap_current[i,:], synaptic_current[i,:],k)
+            k3 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)] + 0.5*dt*k2, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order ], gap_current[i,:], synaptic_current[i,:],k )
+            k4 = HH_Equation_Pairs_tests(Y[i, k*(4+order): (k+1) * (4+order)] + dt * k3, order, gna, gk, gl, Ena, Ek, El, C, I[i,k], tau, gap_junction, Y[i, 0:end:4+order ] ,gap_current[i,:],synaptic_current[i,:],k)
             
             Y[i + 1, k * (4 + order): (k+1) *(4+order)] = Y[i, k * (4+order): (k+1)*(4+order) ] + 1/6 * dt * (k1 + 2*k2 + 2*k3 + k4)
 

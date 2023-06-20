@@ -172,6 +172,8 @@ def LIF_Neuron_Pairs(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap_junctio
     for i in range(0,num_neurons):
         Y[0, i * (1+order)] = y0[i]
     
+    has_spiked = np.ones(num_neurons)
+
     #Runge-Kutta 4th order loop
     for i in range(0,Nsteps-1):
         for k in range(0,num_neurons):
@@ -188,18 +190,16 @@ def LIF_Neuron_Pairs(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap_junctio
                 data[i+1,k] = Vpeak
                 Y[i+1, k * (1+order)] = Vr 
                 matrix[k,i] = 1
+                has_spiked[k] = 0
                 for l in range(0,num_neurons):
                     if l != k:
                         Y[i+1,l * (1+order) +order] = Y[i+1,l*(1+order) + order] + Isyn[k,l]
                         if gap_junction !=0:
-                            Y[i+1,l * (1+order)] = Y[i+1,l *(1+order)] + spikelet
+                            Y[i+1,l * (1+order)] = (Y[i+1,l *(1+order)] + spikelet) * has_spiked[l]
             else:
                 data[i+1,k] = Y[i+1,k *(1+order)]
-        #Reset once again the voltage of the neurons that spiked
-        # TODO
         for k in range(0,num_neurons):
-            if Y[i+1,k * (1+order)] >= Vth:
-                Y[i+1, k * (1+order)] = Vr 
+            has_spiked[k] = 1 
             
     if return_dict == 0:
         return data, Y, matrix
@@ -519,7 +519,7 @@ def LIF_Neuron_Network_tests(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap
         return_dict['Matrix_IF'] = np.array(matrix.todense())
         return_dict['synaptic_IF'] = synaptic
 
-def LIF_Equation_Pairs_tests(y,order,gl,El,C,I,tau,gap_junction,v_neurons,gap_current,synaptic_current):
+def LIF_Equation_Pairs_tests(y,order,gl,El,C,I,tau,gap_junction,v_neurons,gap_current,synaptic_current,k):
     '''
     Algorithm that integrates the equation of the Leaky Integrate and Fire model, as well as the synaptic filter.
 
@@ -553,8 +553,8 @@ def LIF_Equation_Pairs_tests(y,order,gl,El,C,I,tau,gap_junction,v_neurons,gap_cu
 
     #LIF differential equation
     dvdt = (-gl * (y[0] - El) + I - gap_junction * np.sum(y[0] - v_neurons) - y[1]* (y[0] - Vreversal)) / C 
-    gap_current[:] = gap_junction * np.sum(y[0] - v_neurons)
-    synaptic_current[:] =  y[1]* (y[0] - Vreversal)
+    gap_current[k] = gap_junction * np.sum(y[0] - v_neurons)
+    synaptic_current[k] =  y[1]* (y[0] - Vreversal)
 
     #Computing the synaptic filtering
     y = np.append(y,0)
@@ -644,10 +644,10 @@ def LIF_Neuron_Pairs_tests(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap_j
     #Runge-Kutta 4th order loop
     for i in range(0,Nsteps-1):
         for k in range(0,num_neurons):
-            k1 = LIF_Equation_Pairs_tests( Y[i,k*(1+order):(k+1)*(1+order)] ,order,gl,El,C,I[i,k],tau,gap_junction,Y[i,0:end:1+order],gap_current[i,k],synaptic_current[i,k])
-            k2 = LIF_Equation_Pairs_tests( Y[i,k*(1+order):(k+1)*(1+order)] +0.5 * dt * k1,order,gl,El,C,I[i,k],tau,gap_junction,Y[i,0:end:1+order],gap_current[i,k], synaptic_current[i,k])
-            k3 = LIF_Equation_Pairs_tests( Y[i,k*(1+order):(k+1)*(1+order)] +0.5 * dt * k2,order,gl,El,C,I[i,k],tau,gap_junction,Y[i,0:end:1+order],gap_current[i,k],synaptic_current[i,k])
-            k4 = LIF_Equation_Pairs_tests( Y[i,k*(1+order):(k+1)*(1+order)] + dt * k3,order,gl,El,C,I[i,k],tau,gap_junction,Y[i,0:end:1+order],gap_current[i,k],synaptic_current[i,k])
+            k1 = LIF_Equation_Pairs_tests( Y[i,k*(1+order):(k+1)*(1+order)] ,order,gl,El,C,I[i,k],tau,gap_junction,Y[i,0:end:1+order],gap_current[i,:],synaptic_current[i,:],k)
+            k2 = LIF_Equation_Pairs_tests( Y[i,k*(1+order):(k+1)*(1+order)] +0.5 * dt * k1,order,gl,El,C,I[i,k],tau,gap_junction,Y[i,0:end:1+order],gap_current[i,:], synaptic_current[i,:],k)
+            k3 = LIF_Equation_Pairs_tests( Y[i,k*(1+order):(k+1)*(1+order)] +0.5 * dt * k2,order,gl,El,C,I[i,k],tau,gap_junction,Y[i,0:end:1+order],gap_current[i,:],synaptic_current[i,:],k)
+            k4 = LIF_Equation_Pairs_tests( Y[i,k*(1+order):(k+1)*(1+order)] + dt * k3,order,gl,El,C,I[i,k],tau,gap_junction,Y[i,0:end:1+order],gap_current[i,:],synaptic_current[i,:],k)
 
             Y[i+1,k*(1+order):(k+1)*(1+order)] = Y[i,k*(1+order):(k+1)*(1+order)] + (1/6)*dt*(k1+2*k2+2*k3+k4)
 

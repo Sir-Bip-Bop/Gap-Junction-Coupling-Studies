@@ -563,7 +563,7 @@ def IZH_Neuron_Network_tests(dt,t_final,order,y0,u0,I,Isyn,C,vr,vt,rheobase_stre
         return_dict['Matrix_IZH'] = np.array(matrix.todense())
         return_dict['synaptic_IZH'] = synaptic
 
-def IZH_Equation_Pairs_tests(y,order,C,I,vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,v_neurons,gap_current,synaptic_current):
+def IZH_Equation_Pairs_tests(y,order,C,I,vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,v_neurons,gap_current,synaptic_current,k):
     '''
     Algorithm that integrates the equations of the Izhikevich model, as well as the synaptic filter.
 
@@ -605,8 +605,8 @@ def IZH_Equation_Pairs_tests(y,order,C,I,vr,vt,gap_junction,a,b,rheobase_strengt
    #IZH differential equations (voltage and recovery variable)
     dvdt = (rheobase_strength * (y[0] - vr) * (y[0] - vt) - scale_u * y[1] + I - gap_junction * np.sum(y[0]-v_neurons) - y[2] *(y[0]-Vreversal))   / C
     dudt = a * (b*(y[0] - vr) - y[1])
-    gap_current[:] = gap_junction * np.sum(y[0]-v_neurons)
-    synaptic_current[:] = y[2] *(y[0]-Vreversal)
+    gap_current[k] = gap_junction * np.sum(y[0]-v_neurons)
+    synaptic_current[k] = y[2] *(y[0]-Vreversal)
 
     #Computing the synaptic filtering
     y = np.append(y,0)
@@ -704,10 +704,10 @@ def IZH_Neuron_Pairs_tests(dt,t_final,order,y0,u0,I,Isyn,C,vr,vt,rheobase_streng
     #Runge-Kutta 4th order loop
     for i in range(0,Nsteps - 1):
         for k in range(0,num_neurons):
-            k1 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] ,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,k],synaptic_current[i,k])
-            k2 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] +0.5 * dt * k1,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,k],synaptic_current[i,k])
-            k3 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] +0.5 * dt * k2,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,k],synaptic_current[i,k])
-            k4 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] + dt * k3,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,k],synaptic_current[i,k])
+            k1 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] ,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,:],synaptic_current[i,:],k)
+            k2 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] +0.5 * dt * k1,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,:],synaptic_current[i,:],k)
+            k3 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] +0.5 * dt * k2,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,:],synaptic_current[i,:],k)
+            k4 = IZH_Equation_Pairs_tests( Y[i,k*(2+order):(k+1)*(2+order)] + dt * k3,order,C,I[i,k],vr,vt,gap_junction,a,b,rheobase_strength,scale_u,tau,Y[i,0:end:2+order],gap_current[i,:],synaptic_current[i,:],k)
 
             Y[i+1,k*(2+order):(k+1)*(2+order)] = Y[i,k*(2+order):(k+1)*(2+order)] + (1/6)*dt*(k1+2*k2+2*k3+k4)
 

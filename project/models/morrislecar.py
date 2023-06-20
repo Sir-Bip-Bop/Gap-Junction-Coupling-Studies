@@ -600,7 +600,7 @@ def ML_Neuron_Network_tests(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt
         return_dict['Matrix_ML'] = np.array(matrix.todense())
         return_dict['synaptic_ML'] = synaptic
 
-def ML_Equation_Pairs_tests(y, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I, tau, gap_junction, v_neurons,gap_current,synaptic_current ):
+def ML_Equation_Pairs_tests(y, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I, tau, gap_junction, v_neurons,gap_current,synaptic_current ,k):
     '''
     Algorithm that integrates the equations of the modified Morris-Lecar model, as well as the synaptic filter.
 
@@ -657,8 +657,8 @@ def ML_Equation_Pairs_tests(y, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, 
     winf = 0.5 * (1 + np.tanh( (y[0] - V3) / V4))
     dwdt = psi * (winf - y[1])*np.cosh( (y[0] - V3) / 2 / V4)
 
-    gap_current[:] = gap_junction * np.sum(y[0] - v_neurons)
-    synaptic_current[:] = y[2] * (y[0]- Vreversal)
+    gap_current[k] = gap_junction * np.sum(y[0] - v_neurons)
+    synaptic_current[k] = y[2] * (y[0]- Vreversal)
     #Computing the synaptic filtering
     y = np.append(y,0)
     for i in range(2, 2+order):
@@ -759,10 +759,10 @@ def ML_Neuron_Pairs_tests(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt,E
     #Runge-Kutta 4th order loop
     for i in range(0,Nsteps - 1):
         for k in range(0,num_neurons):
-            k1 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)], order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order],gap_current[i,k],synaptic_current[i,k] )
-            k2 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)] + 0.5*dt*k1, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order],gap_current[i,k],synaptic_current[i,k] )
-            k3 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)] + 0.5*dt*k2, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order], gap_current[i,k],synaptic_current[i,k])
-            k4 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)] + dt * k3, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order],gap_current[i,k],synaptic_current[i,k] )
+            k1 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)], order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order],gap_current[i,:],synaptic_current[i,:],k )
+            k2 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)] + 0.5*dt*k1, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order],gap_current[i,:],synaptic_current[i,:],k )
+            k3 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)] + 0.5*dt*k2, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order], gap_current[i,:],synaptic_current[i,:],k)
+            k4 = ML_Equation_Pairs_tests(Y[i, k*(2+order): (k+1) * (2+order)] + dt * k3, order, psi,V1,V2,V3,V4,gna, gk, gshunt, Ena, Ek, Eshunt, C, I[i,k], tau, gap_junction, Y[i, 0:end:2+order],gap_current[i,:],synaptic_current[i,:],k )
 
             Y[i + 1, k * (2 + order): (k+1) *(2+order)] = Y[i, k * (2+order): (k+1)*(2+order) ] + 1/6 * dt * (k1 + 2*k2 + 2*k3 + k4)
 
