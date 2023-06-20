@@ -2,7 +2,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import scipy.stats as stats
 
-def create_matrix(connection_type,num_neurons = 0, connection_fraction_e = 0.3, connection_fraction_c = 0.5,seed_ini = 1234 ):
+def create_matrix(connection_type,num_neurons = 0, connection_fraction_e = 0.3, connection_fraction_c = 0.5, barabasi_initial_neurons = 3, barabasi_links = 3,seed_ini = 1234 ):
     '''
     Creates a connectivity matrix, which characteristics can be defined while calling the function.
 
@@ -53,5 +53,35 @@ def create_matrix(connection_type,num_neurons = 0, connection_fraction_e = 0.3, 
         #remove the entries from the diagonal
         np.fill_diagonal(matrix,0)
         matrix = csr_matrix(matrix)
+
+    elif connection_type == 'barabasi' :
+        matrix = np.ones((barabasi_initial_neurons,barabasi_initial_neurons))
+        #empty the diagonal
+        np.fill_diagonal(matrix,0)
+        for i in range(barabasi_initial_neurons, num_neurons):
+
+            #Compute the connectivity to obtain the probablities
+            connectivity = np.sum(matrix,axis=0)
+
+            #compute the probabilty
+            max_connectivity = np.sum(connectivity)
+            probability = connectivity / max_connectivity
+
+            #We add a new node
+            matrix = np.lib.pad(matrix, ((0,1),(0,1)), 'constant', constant_values=(0))
+            #generate a number and try to fill that node
+            links = 0
+            while links < barabasi_links:
+                index = int(np.random.uniform(0,1) * i)
+                prob_index = np.random.uniform(0,1) * max_connectivity
+                if prob_index <= probability[index] and matrix[index][i] == 0:
+                    matrix[index][i] = matrix[i][index] = 1 
+                    links = links + 1
+
+        matrix = csr_matrix(matrix)
+
+
+
+
 
     return matrix, seed_ini
