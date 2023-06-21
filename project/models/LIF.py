@@ -195,7 +195,7 @@ def LIF_Neuron_Pairs(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap_junctio
                     if l != k:
                         Y[i+1,l * (1+order) +order] = Y[i+1,l*(1+order) + order] + Isyn[k,l]
                         if gap_junction !=0:
-                            Y[i+1,l * (1+order)] = (Y[i+1,l *(1+order)] + spikelet) * has_spiked[l]
+                            Y[i+1,l * (1+order)] = Y[i+1,l *(1+order)] + (spikelet) * has_spiked[l]
             else:
                 data[i+1,k] = Y[i+1,k *(1+order)]
         for k in range(0,num_neurons):
@@ -287,8 +287,8 @@ def LIF_Neuron_Network(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap_junct
         Y[0,i] = y0[i]
         data[0,i] = y0[i]
 
-    check = np.zeros(num_neurons)
-    check_aux = check
+
+    has_spiked = np.ones(num_neurons)
 
     #compute the number of connections of each neuron
     num_connections = np.zeros(num_neurons)
@@ -308,27 +308,19 @@ def LIF_Neuron_Network(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap_junct
             spikes = np.where( Y[i+1,:] >= Vth)
             if len(spikes[0]) > 0:
                 for spike_ind in spikes[0]:
-                    if check[spike_ind] == 0:
-                        check_aux[spike_ind] = 1
-                        matrix[spike_ind,i] = 1
-                        data[i+1,:] = Y[i+1,:]
-                        data[i+1,spike_ind] = Vpeak
-                        Y[i+1,spike_ind] = Vr 
-                        synaptic[i+1,(order-1)*num_neurons:order*num_neurons] = synaptic[i+1,(order-1)*num_neurons:order*num_neurons] + C_matrix[spike_ind,:] *Isyn / num_connections[spike_ind]
-                        Y[i+1,:] = Y[i+1,:] +  E_matrix[spike_ind,:] *spikelet 
-                #for spike_ind in spikes[0]:
-                #    if check[spike_ind] == 0 :
-                #        Y[i+1,spike_ind] = Vr
+                    matrix[spike_ind,i] = 1
+                    data[i+1,:] = Y[i+1,:]
+                    data[i+1,spike_ind] = Vpeak
+                    Y[i+1,spike_ind] = Vr 
+                    has_spiked[spike_ind] = 0
+                    synaptic[i+1,(order-1)*num_neurons:order*num_neurons] = synaptic[i+1,(order-1)*num_neurons:order*num_neurons] + C_matrix[spike_ind,:] *Isyn / num_connections[spike_ind]
+                    Y[i+1,:] = Y[i+1,:] +  E_matrix[spike_ind,:] *spikelet * has_spiked[spike_ind]
+                for spike_ind in spikes[0]:
+                    has_spiked[spike_ind] = 1
             else:
                 data[i+1,:] = Y[i+1,:]
         else:
             data[i+1,:] = Y[i+1,:]
-
-        negatives = np.where(Y[i,:]< 0)
-        if len(negatives[0]) > 0:
-            for index in negatives[0]:
-                check_aux[index] = 0 
-        check = check_aux
 
     if return_dict == 0:
         return data, Y, matrix, synaptic
@@ -468,8 +460,7 @@ def LIF_Neuron_Network_tests(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap
         Y[0,i] = y0[i]
         data[0,i] = y0[i]
 
-    check = np.zeros(num_neurons)
-    check_aux = check
+    has_spiked = np.ones(num_neurons)
 
     #compute the number of connections of each neuron
     num_connections = np.zeros(num_neurons)
@@ -489,27 +480,19 @@ def LIF_Neuron_Network_tests(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap
             spikes = np.where( Y[i+1,:] >= Vth)
             if len(spikes[0]) > 0:
                 for spike_ind in spikes[0]:
-                    if check[spike_ind] == 0:
-                        check_aux[spike_ind] = 1
-                        matrix[spike_ind,i] = 1
-                        data[i+1,:] = Y[i+1,:]
-                        data[i+1,spike_ind] = Vpeak
-                        Y[i+1,spike_ind] = Vr 
-                        synaptic[i+1,(order-1)*num_neurons:order*num_neurons] = synaptic[i+1,(order-1)*num_neurons:order*num_neurons] + C_matrix[spike_ind,:] *Isyn / num_connections[spike_ind]
-                        Y[i+1,:] = Y[i+1,:] +  E_matrix[spike_ind,:] *spikelet 
-                #for spike_ind in spikes[0]:
-                #    if check[spike_ind] == 0 :
-                #        Y[i+1,spike_ind] = Vr
+                    matrix[spike_ind,i] = 1
+                    data[i+1,:] = Y[i+1,:]
+                    data[i+1,spike_ind] = Vpeak
+                    Y[i+1,spike_ind] = Vr 
+                    has_spiked[spike_ind] = 0
+                    synaptic[i+1,(order-1)*num_neurons:order*num_neurons] = synaptic[i+1,(order-1)*num_neurons:order*num_neurons] + C_matrix[spike_ind,:] *Isyn / num_connections[spike_ind]
+                    Y[i+1,:] = Y[i+1,:] +  E_matrix[spike_ind,:] *spikelet * has_spiked[spike_ind]
+                for spike_ind in spikes[0]:
+                    has_spiked[spike_ind] = 1
             else:
                 data[i+1,:] = Y[i+1,:]
         else:
             data[i+1,:] = Y[i+1,:]
-
-        negatives = np.where(Y[i,:]< 0)
-        if len(negatives[0]) > 0:
-            for index in negatives[0]:
-                check_aux[index] = 0 
-        check = check_aux
 
     if return_dict == 0:
         return data, Y, matrix, synaptic
@@ -640,6 +623,8 @@ def LIF_Neuron_Pairs_tests(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap_j
     #Setting the initial conditions of the system
     for i in range(0,num_neurons):
         Y[0, i * (1+order)] = y0[i]
+
+    has_spiked = np.ones(num_neurons)
     
     #Runge-Kutta 4th order loop
     for i in range(0,Nsteps-1):
@@ -657,17 +642,16 @@ def LIF_Neuron_Pairs_tests(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap_j
                 data[i+1,k] = Vpeak
                 Y[i+1, k * (1+order)] = Vr 
                 matrix[k,i] = 1
+                has_spiked[k] = 0
                 for l in range(0,num_neurons):
                     if l != k:
                         Y[i+1,l * (1+order) +order] = Y[i+1,l*(1+order) + order] + Isyn[k,l]
                         if gap_junction !=0:
-                            Y[i+1,l * (1+order)] = Y[i+1,l *(1+order)] + spikelet
+                            Y[i+1,l * (1+order)] = Y[i+1,l *(1+order)] + (spikelet) * has_spiked[l]
             else:
                 data[i+1,k] = Y[i+1,k *(1+order)]
-        #Reset once again the voltage of the neurons that spiked
         for k in range(0,num_neurons):
-            if Y[i+1,k * (1+order)] >= Vth:
-                Y[i+1, k * (1+order)] = Vr 
+            has_spiked[k] = 1 
             
     if return_dict == 0:
         return data, Y, matrix
