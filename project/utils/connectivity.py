@@ -2,7 +2,16 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import scipy.stats as stats
 
-def create_matrix(connection_type,num_neurons = 0, connection_fraction_e = 0.3, connection_fraction_c = 0.5, barabasi_initial_neurons = 3, barabasi_links = 3,seed_ini = 1234 ):
+class Neuron:
+    def __init__(self,index,x_cord,y_cord,z_cord):
+        self.index = index 
+        self.x_cord = x_cord
+        self.y_cord = y_cord
+        self.z_cord = z_cord
+
+#TODO: CHange the electrical to be a parameter of the funcion -> chemical/electrical into 'random'
+
+def create_matrix(connection_type,num_neurons = 0, connection_fraction_e = 0.3, connection_fraction_c = 0.5, barabasi_initial_neurons = 3, barabasi_links = 3,spatial_initial_neurons = 3, spatial_links = 2, spatial_initial_config = 'triangle',spatial_xmin = 0, spatial_xmax = 10, spatial_ymin = 0, spatial_ymax = 10, spatial_zmin = 0, spatial_zmax = 10, seed_ini = 1234 ):
     '''
     Creates a connectivity matrix, which characteristics can be defined while calling the function.
 
@@ -79,6 +88,40 @@ def create_matrix(connection_type,num_neurons = 0, connection_fraction_e = 0.3, 
                     links = links + 1
 
         matrix = csr_matrix(matrix)
+
+    elif connection_type == 'spatial':
+        matrix = np.ones((spatial_initial_neurons,spatial_initial_neurons))
+        neurons = {}
+        if spatial_initial_config == 'triangle':
+            for i in range(0,spatial_initial_neurons):
+               neurons[i] =  Neuron(i,np.random.uniform(spatial_xmin,spatial_xmax),np.random.uniform(spatial_ymin,spatial_ymax),np.random.uniform(spatial_zmin,spatial_zmax))
+        #empty the diagonal
+        np.fill_diagonal(matrix,0)
+        for i in range(spatial_initial_neurons, num_neurons):
+
+            #We add a new node
+            matrix = np.lib.pad(matrix, ((0,1),(0,1)), 'constant', constant_values=(0))
+
+            #add a new neuron
+            neurons[i] = Neuron(i,np.random.uniform(spatial_xmin,spatial_xmax),np.random.uniform(spatial_ymin,spatial_ymax),np.random.uniform(spatial_zmin,spatial_zmax))
+            distances = np.zeros(i)
+            #Compute the distances to obtain the probablities
+            for j in range(0,i-1):
+                distances[j] = np.sqrt((neurons[j].x_cord - neurons[i].x_cord) * (neurons[j].x_cord - neurons[i].x_cord) + (neurons[j].y_cord - neurons[i].y_cord)*(neurons[j].y_cord - neurons[i].y_cord) + (neurons[j].z_cord - neurons[i].z_cord)*(neurons[j].z_cord - neurons[i].z_cord))
+
+            #compute the probabilty
+            max_distance = np.sum(distances)
+            probability = distances / max_distance
+            #generate a number and try to fill that node
+            links = 0
+            while links < spatial_links:
+                index = int(np.random.uniform(0,1) * i)
+                prob_index = np.random.uniform(0,1) * max_distance
+                if prob_index <= probability[index] and matrix[index][i] == 0:
+                    matrix[index][i] = matrix[i][index] = 1 
+                    links = links + 1
+
+        matrix = csr_matrix(matrix) 
 
 
 

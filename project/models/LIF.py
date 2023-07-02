@@ -487,6 +487,7 @@ def LIF_Neuron_Network_tests(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap
                     has_spiked[spike_ind] = 0
                     synaptic[i+1,(order-1)*num_neurons:order*num_neurons] = synaptic[i+1,(order-1)*num_neurons:order*num_neurons] + C_matrix[spike_ind,:] *Isyn / num_connections[spike_ind]
                     Y[i+1,:] = Y[i+1,:] +  E_matrix[spike_ind,:] *spikelet * has_spiked[spike_ind]
+                    gap_current[i,:] = gap_current[i,:] + E_matrix[spike_ind,:] * spikelet * has_spiked[spike_ind]
                 for spike_ind in spikes[0]:
                     has_spiked[spike_ind] = 1
             else:
@@ -648,6 +649,7 @@ def LIF_Neuron_Pairs_tests(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap_j
                         Y[i+1,l * (1+order) +order] = Y[i+1,l*(1+order) + order] + Isyn[k,l]
                         if gap_junction !=0:
                             Y[i+1,l * (1+order)] = Y[i+1,l *(1+order)] + (spikelet) * has_spiked[l]
+                            gap_current[i,l] = gap_current[i,l] + spikelet * has_spiked[l] 
             else:
                 data[i+1,k] = Y[i+1,k *(1+order)]
         for k in range(0,num_neurons):

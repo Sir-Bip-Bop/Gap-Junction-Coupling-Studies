@@ -58,7 +58,7 @@ for i in bb:
 
 
 #Creation of the plot, the constant lines are representing the threshold and reset values
-#phase_diagram.add_nullclines(xcolor='black',xprecision=0.2,show='x')
+phase_diagram.add_nullclines(xcolor='black',xprecision=0.2,show='x')
 phase_diagram.plot()
 #phase_diagram.ax.plot(X,ii, color= 'red', label = 'X - nullcine')
 #phase_diagram.ax.plot(bb,Y, color = 'green', label = 'Y - nullcline')
