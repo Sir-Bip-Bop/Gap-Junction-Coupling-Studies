@@ -481,13 +481,14 @@ def LIF_Neuron_Network_tests(dt,t_final,order,y0,Vth,Vr,Vpeak,gl,El,C,I,Isyn,gap
             if len(spikes[0]) > 0:
                 for spike_ind in spikes[0]:
                     matrix[spike_ind,i] = 1
-                    data[i+1,:] = Y[i+1,:]
-                    data[i+1,spike_ind] = Vpeak
-                    Y[i+1,spike_ind] = Vr 
                     has_spiked[spike_ind] = 0
+                    data[i+1,:] = Y[i+1,:] * has_spiked[:] + Vpeak * (1 - has_spiked[:])
+                    #data[i+1,spike_ind] = Vpeak
+                    #print(data[i+1,spike_ind],Y[i+1,spike_ind])
+                    Y[i+1,spike_ind] = Vr  
                     synaptic[i+1,(order-1)*num_neurons:order*num_neurons] = synaptic[i+1,(order-1)*num_neurons:order*num_neurons] + C_matrix[spike_ind,:] *Isyn / num_connections[spike_ind]
-                    Y[i+1,:] = Y[i+1,:] +  E_matrix[spike_ind,:] *spikelet * has_spiked[spike_ind]
-                    gap_current[i,:] = gap_current[i,:] + E_matrix[spike_ind,:] * spikelet * has_spiked[spike_ind]
+                    Y[i+1,:] = Y[i+1,:] +  (E_matrix[spike_ind,:] *spikelet * has_spiked[:])
+                    #gap_current[i,:] = gap_current[i,:] + (E_matrix[spike_ind,:] * spikelet * has_spiked[:])
                 for spike_ind in spikes[0]:
                     has_spiked[spike_ind] = 1
             else:
