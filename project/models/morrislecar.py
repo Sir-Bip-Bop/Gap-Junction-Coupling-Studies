@@ -253,9 +253,22 @@ def ML_Neuron_Pairs(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt,Ena,Ek,
     if return_dict == 0:
         return data, Y, matrix
     else:
-        return_dict['data_ML'] = data 
-        return_dict['Y_ML'] = Y 
-        return_dict['Matrix_ML'] = np.array(matrix.todense())
+        if psi == 0.04:
+            return_dict['data_ML_hopf'] = data
+            return_dict['Y_ML_hopf'] = Y 
+            return_dict['Matrix_ML_hopf'] = np.array(matrix.todense())
+        elif psi == 0.067:
+            return_dict['data_ML_SNLC'] = data
+            return_dict['Y_ML_SNLC'] = Y 
+            return_dict['Matrix_ML_SNLC'] = np.array(matrix.todense())
+        elif psi == 0.23:
+            return_dict['data_ML_homoclinic'] = data
+            return_dict['Y_ML_homoclinic'] = Y 
+            return_dict['Matrix_ML_homoclinic'] = np.array(matrix.todense())
+        else:
+            return_dict['data_ML'] = data 
+            return_dict['Y_ML'] = Y 
+            return_dict['Matrix_ML'] = np.array(matrix.todense())
 
 def ML_Neuron_Network(dt,t_final,order,y0,w0,psi,V1,V2,V3,V4,gna,gk,gshunt,Ena,Ek,Eshunt,C,I,Isyn,gap_junction,tau,E_matrix,C_matrix,return_dict=0):
     ''' 
