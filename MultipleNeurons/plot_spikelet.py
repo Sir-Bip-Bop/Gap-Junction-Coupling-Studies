@@ -25,8 +25,8 @@ diff_HH[diff_HH<1e-2] = np.nan
 #Plot and fit of the resulting data
 K, NUM = np.meshgrid(k,num)
 
-def fit_fun(k, num, k_coef, num_coef, general_coef):
-    return (k * k_coef + np.exp(num)*num_coef ) * general_coef
+def fit_fun(k, num, k_coef, num_coef,base):
+    return (k * k_coef * (num*num)*num_coef + base*k)
     #return 2
 
 fig = plt.figure()
@@ -41,7 +41,7 @@ def _fit_fun(M, *args):
 
     return arr 
 
-guess_prms = [30, 20, 50]
+guess_prms = [3, 0.2,2]
 kdata = np.vstack((K.ravel(),NUM.ravel()))
 popt, pcov = sp.optimize.curve_fit(_fit_fun,kdata,diff_HH.ravel(),guess_prms,nan_policy = 'omit')
 
