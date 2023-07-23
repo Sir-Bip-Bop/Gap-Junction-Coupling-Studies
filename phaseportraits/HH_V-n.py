@@ -9,8 +9,11 @@ import scipy as sp
 
 #General plot style used in the project, and size definition
 plt.style.use('science')
-plt.rcParams["figure.figsize"] = (8,8)
-plt.rcParams.update({"axes.grid" : True})
+plt.rcParams["figure.figsize"] = (12,12)
+#plt.rcParams.update({"axes.grid" : True})
+plt.rcParams.update({"axes.titlesize": 17})
+plt.rcParams.update({"axes.labelsize": 15})
+
 
 
 #Definition of the function with some extra spice in order to ensure our experiment works
@@ -51,9 +54,9 @@ ins = my_function(m_array, h_array, time[0])
 phase_diagram = PhasePortrait2D(ins, [[-80,80],[0,1]],
 	  dF_args = {'I': 2, 'vt': -58},
 	  MeshDim = 12,
-	  Title = 'HH Phase portrait (V-n)',
-	  xlabel = r'Voltage$(\mu V)$',
-	  ylabel = 'Recovery variable n',
+	  Title = 'HH Phase Portrait (V-n)',
+	  xlabel = 'Voltage(mV)',
+	  ylabel = 'Recovery Variable n',
 	  color= 'cool',
 )
 

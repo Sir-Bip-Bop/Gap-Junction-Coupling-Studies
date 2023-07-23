@@ -3,12 +3,15 @@ import matplotlib.pyplot as plt
 import scienceplots
 import numpy as np
 import scipy as sp
-
+import matplotlib
 
 #General plot style used in the project, and size definition
 plt.style.use('science')
 plt.rcParams["figure.figsize"] = (12,12)
-plt.rcParams.update({"axes.grid" : True})
+#plt.rcParams.update({"axes.grid" : True})
+plt.rcParams.update({"axes.titlesize": 17})
+plt.rcParams.update({"axes.labelsize": 15})
+
 
 
 #Definition of the functions to integrate, that is the ML equations
@@ -35,8 +38,8 @@ phase_diagram = PhasePortrait2D(ML, [[-80,60],[0,1]],
 	  dF_args = {'I': 2},
 	  MeshDim = 20,
 	  Title = 'ML Phase portrait',
-	  xlabel = r'Voltage$(\mu V)$',
-	  ylabel = 'recovery variable',
+	  xlabel = 'Voltage(mV)',
+	  ylabel = 'Recovery Variable',
 	  color= 'cool',
 )
 
@@ -58,9 +61,13 @@ for i in bb:
 
 
 #Creation of the plot, the constant lines are representing the threshold and reset values
-phase_diagram.add_nullclines(xcolor='black',xprecision=0.2,show='x')
+phase_diagram.add_nullclines(xcolor='red',xprecision=0.2,show='x')
 phase_diagram.plot()
 #phase_diagram.ax.plot(X,ii, color= 'red', label = 'X - nullcine')
-#phase_diagram.ax.plot(bb,Y, color = 'green', label = 'Y - nullcline')
-phase_diagram.ax.legend(loc='right', bbox_to_anchor=(0.9, 1.03),ncol=1, fancybox=True, shadow=True)
+phase_diagram.ax.plot(bb,Y, color = 'green', label = 'Y - ullcline')
+custom_lines = [matplotlib.lines.Line2D([0], [0], color='red', lw=2),
+                matplotlib.lines.Line2D([0], [0], color='green', lw=2),]
+
+phase_diagram.ax.legend(custom_lines, ['X - Nullcline', 'Y - Nullcline'],loc='right', bbox_to_anchor=(0.2, 0.83),ncol=1, frameon=True, prop={'size': 12}, fancybox=True, shadow=False)
+
 plt.show()

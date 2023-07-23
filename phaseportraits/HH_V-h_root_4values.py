@@ -9,6 +9,9 @@ import scipy as sp
 plt.style.use('science')
 plt.rcParams["figure.figsize"] = (12,12)
 plt.rcParams.update({"axes.grid" : True})
+plt.rcParams.update({"axes.titlesize": 17})
+plt.rcParams.update({"axes.labelsize": 15})
+
 
 
 #Definition of the functions to integrate, that is the HH equations for the Voltage and the h variable
@@ -120,27 +123,29 @@ for p in range(len(m_values)):
 fig, axs = plt.subplots(2, 2)
 
 plot_1 = axs[0,0].scatter(Roots_x,Roots_y, marker = 'o',c = n_values, cmap=plt.cm.get_cmap('cool'))
-plt.colorbar(plot_1,ax=axs[0,0])
-axs[0,0].set_title('HH Phase portrait (V-h) - Intersection of nullclines for m = 0.1')
-axs[0,0].set_xlabel (r'Voltage$(\mu V)$')
-axs[0,0].set_ylabel('Recovery variable h')
+#plt.colorbar(plot_1,ax=axs[0,0])
+axs[0,0].set_title('Stable Points for m = 0.1')
+#axs[0,0].set_xlabel ('Voltage(mV)')
+axs[0,0].set_ylabel('Recovery Variable h')
 
 plot_2 = axs[0,1].scatter(Roots_x_2,Roots_y_2, marker = 'o',c = n_values, cmap=plt.cm.get_cmap('cool'))
-plt.colorbar(plot_2,ax=axs[0,1])
-axs[0,1].set_title('HH Phase portrait (V-h) - Intersection of nullclines for m = 0.3')
-axs[0,1].set_xlabel (r'Voltage$(\mu V)$')
-axs[0,1].set_ylabel('Recovery variable h')
+cbar = plt.colorbar(plot_2,ax=axs[0,1])
+cbar.set_label('Recovery Variable n', rotation=270,labelpad=15)
+axs[0,1].set_title('Stable Points for m = 0.3')
+#axs[0,1].set_xlabel ('Voltage(mV)')
+#axs[0,1].set_ylabel('Recovery Variable h')
 
 plot_3 = axs[1,0].scatter(Roots_x_3,Roots_y_3, marker = 'o',c = n_values, cmap=plt.cm.get_cmap('cool'))
-plt.colorbar(plot_3,ax=axs[1,0])
-axs[1,0].set_title('HH Phase portrait (V-h) - Intersection of nullclines for m = 0.5')
-axs[1,0].set_xlabel (r'Voltage$(\mu V)$')
-axs[1,0].set_ylabel('Recovery variable h')
+#plt.colorbar(plot_3,ax=axs[1,0])
+axs[1,0].set_title('Stable Points for m = 0.5')
+axs[1,0].set_xlabel ('Voltage(mV)')
+axs[1,0].set_ylabel('Recovery Variable h')
 
 plot_4 = axs[1,1].scatter(Roots_x_4,Roots_y_4, marker = 'o',c = n_values, cmap=plt.cm.get_cmap('cool'))
-plt.colorbar(plot_4,ax=axs[1,1])
-axs[1,1].set_title('HH Phase portrait (V-h) - Intersection of nullclines for m = 0.8')
-axs[1,1].set_xlabel (r'Voltage$(\mu V)$')
-axs[1,1].set_ylabel('Recovery variable h')
+cbar = plt.colorbar(plot_4,ax=axs[1,1])
+cbar.set_label('Recovery Variable n', rotation=270,labelpad=15)
+axs[1,1].set_title('Stable points for m = 0.8')
+axs[1,1].set_xlabel ('Voltage(mV)')
+#axs[1,1].set_ylabel('Recovery Variable h')
 
 plt.show()
