@@ -15,9 +15,9 @@ plt.rcParams.update({"axes.grid" : True})
 plt.rcParams.update({"axes.titlesize": 18})
 plt.rcParams.update({"axes.labelsize": 15})
 
-k = np.loadtxt('MultipleNeurons/k_plus_0.0005/k_data.txt')
-num = np.loadtxt('MultipleNeurons/k_plus_0.0005/num_data.txt')
-diff_HH = np.loadtxt('MultipleNeurons/k_plus_0.0005/diff_HH_data.txt')
+k = np.loadtxt('MultipleNeurons/k_plus_0.0007/k_data.txt')
+num = np.loadtxt('MultipleNeurons/k_plus_0.0007/num_data.txt')
+diff_HH = np.loadtxt('MultipleNeurons/k_plus_0.0007/diff_HH_data.txt')
 
 #discarding the values where diff_HH is zero
 diff_HH[diff_HH<1e-2] = np.nan
@@ -26,12 +26,16 @@ diff_HH[diff_HH<1e-2] = np.nan
 K, NUM = np.meshgrid(k,num)
 
 def fit_fun(k, num, k_coef, num_coef,base):
-    return (k * k_coef * (num*num)*num_coef + base*k)
+    return (k * k_coef * (num**2)*num_coef + base*k)
     #return 2
 
 fig = plt.figure()
 ax = fig.add_subplot(projection= '3d')
 ax.plot_surface(K, NUM, diff_HH,cmap = 'cool')
+ax.set_xlabel('Gap junction Strength')
+ax.set_ylabel('Neuron Number')
+ax.set_zlabel('Spikelet Height')
+plt.title('3D surface of spikelet height',fontsize=22)
 plt.show()
 
 def _fit_fun(M, *args):
@@ -49,8 +53,13 @@ popt, pcov = sp.optimize.curve_fit(_fit_fun,kdata,diff_HH.ravel(),guess_prms,nan
 
 fig = plt.figure()
 ax = fig.add_subplot(projection= '3d')
-ax.plot_surface(K, NUM, fit_fun(K,NUM,*popt),cmap = 'cool')
-cset = ax.contourf(K, NUM, diff_HH-fit_fun(K,NUM,*popt), zdir='z', offset=0, cmap='cool')
+ax.plot_surface(K, NUM, fit_fun(K,NUM,*popt),cmap = 'summer')
+ax.plot_surface(K, NUM, diff_HH,cmap = 'cool')
+cset = ax.contourf(K, NUM, diff_HH-fit_fun(K,NUM,*popt), zdir='z', offset=0, cmap='summer')
+ax.set_xlabel('Gap junction Strength')
+ax.set_ylabel('Neuron Number')
+ax.set_zlabel('Spikelet Height')
+plt.title('3D surface of spikelet height fit and residue',fontsize=22)
 plt.show()
 
 print('The final parameters:', popt)
