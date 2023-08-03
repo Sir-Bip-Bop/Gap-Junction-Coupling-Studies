@@ -36,7 +36,7 @@ def MLy(z,V,*,I = 2):
 #Creation of the phase diagram
 phase_diagram = PhasePortrait2D(ML, [[-80,60],[0,1]],
 	  dF_args = {'I': 2},
-	  MeshDim = 20,
+	  MeshDim = 40,
 	  Title = 'ML Phase portrait',
 	  xlabel = 'Voltage(mV)',
 	  ylabel = 'Recovery Variable',

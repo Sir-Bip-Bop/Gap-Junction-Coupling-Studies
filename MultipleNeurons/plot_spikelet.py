@@ -26,7 +26,7 @@ diff_HH[diff_HH<1e-2] = np.nan
 K, NUM = np.meshgrid(k,num)
 
 def fit_fun(k, num, k_coef, num_coef,base):
-    return (k * k_coef * (num**2)*num_coef + base*k)
+    return (k * k_coef * (num**6)*num_coef + base*k)
     #return 2
 
 fig = plt.figure()

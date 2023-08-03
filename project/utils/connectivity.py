@@ -65,7 +65,10 @@ def create_matrix(connection_type,num_neurons = 0, synapse_type = 'chemical',con
                 index = int(np.random.uniform(0,1) * i)
                 prob_index = np.random.uniform(0,1) * max_connectivity
                 if prob_index <= probability[index] and matrix[index][i] == 0:
-                    matrix[index][i] = matrix[i][index] = 1 
+                    if synapse_type == 'electrical':
+                        matrix[index][i] = matrix[i][index] = 1 
+                    else:
+                        matrix[index][i] = 1
                     links = links + 1
 
     elif connection_type == 'spatial':
@@ -97,7 +100,10 @@ def create_matrix(connection_type,num_neurons = 0, synapse_type = 'chemical',con
                 index = int(np.random.uniform(0,1) * i)
                 prob_index = np.random.uniform(0,1) * max_distance
                 if prob_index <= probability[index] and matrix[index][i] == 0:
-                    matrix[index][i] = matrix[i][index] = 1 
+                    if synapse_type == 'electrical':
+                        matrix[index][i] = matrix[i][index] = 1 
+                    else:
+                        matrix[index][i] = 1
                     links = links + 1
 
     if synapse_type == 'electrical':

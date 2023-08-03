@@ -20,7 +20,7 @@ def LIF(I, V, *, C = 1, gl = 0.1, El = -70):
 phase_diagram = PhasePortrait2D(LIF, [[-20,20],[-70,30]],
     Density= 4,
 	dF_args = {'C': 1, 'gl': 0.1, 'El': -70},
-	MeshDim = 20,
+	MeshDim = 40,
 	Title = 'LIF Phase Portrait',
 	xlabel = r'Intensity$(\mu A)$',
 	ylabel = 'Voltage(mV)',
