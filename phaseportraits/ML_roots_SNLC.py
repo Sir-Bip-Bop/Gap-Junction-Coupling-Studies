@@ -62,7 +62,13 @@ for i in bb:
 
 #Creation of the plot, the constant lines are representing the threshold and reset values
 phase_diagram.add_nullclines(xcolor='red',xprecision=0.2,show='x')
-phase_diagram.plot()
+fig, ax = phase_diagram.plot()
+
+circle = Trajectory2D(ML, n_points=10000, size=2, Range=[[-80 , 60], [-0.1 , 0.5]],Fig = fig,Ax=ax,	  Title = 'ML Phase portrait SNLC',
+	  xlabel = 'Voltage(mV)',
+	  ylabel = 'Recovery Variable')
+circle.initial_position(-60,0)
+fig, ax2= circle.plot(color='cool')
 #phase_diagram.ax.plot(X,ii, color= 'red', label = 'X - nullcine')
 phase_diagram.ax.plot(bb,Y, color = 'green', label = 'Y - ullcline')
 custom_lines = [matplotlib.lines.Line2D([0], [0], color='red', lw=2),

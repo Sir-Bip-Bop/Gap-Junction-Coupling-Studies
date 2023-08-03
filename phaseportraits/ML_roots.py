@@ -12,8 +12,6 @@ plt.rcParams["figure.figsize"] = (12,12)
 plt.rcParams.update({"axes.titlesize": 17})
 plt.rcParams.update({"axes.labelsize": 15})
 
-
-
 #Definition of the functions to integrate, that is the ML equations
 def ML(V,w, *, I =2):
    minf = 0.5 * (1 + np.tanh( ((V + 3 )/ 20)))
@@ -44,7 +42,6 @@ phase_diagram = PhasePortrait2D(ML, [[-80,60],[0,1]],
 )
 
 
-
 #Obtaining the nullcines in an analytical format - finding the roots
 X = []
 Y = []
@@ -60,14 +57,22 @@ for i in bb:
 	Y.append(solve_y.root)
 
 
+
 #Creation of the plot, the constant lines are representing the threshold and reset values
 phase_diagram.add_nullclines(xcolor='red',xprecision=0.2,show='x')
-phase_diagram.plot()
+fig, ax = phase_diagram.plot()
+
+circle = Trajectory2D(ML, n_points=10000, size=2, Range=[[-80 , 60], [0 , 1]],Fig = fig,Ax=ax,	  Title = 'ML Phase portrait',
+	  xlabel = 'Voltage(mV)',
+	  ylabel = 'Recovery Variable')
+circle.initial_position(-60,0)
+fig, ax2= circle.plot(color='cool')
+
 #phase_diagram.ax.plot(X,ii, color= 'red', label = 'X - nullcine')
-phase_diagram.ax.plot(bb,Y, color = 'green', label = 'Y - ullcline')
+ax.plot(bb,Y, color = 'green', label = 'Y - Nullcline')
 custom_lines = [matplotlib.lines.Line2D([0], [0], color='red', lw=2),
                 matplotlib.lines.Line2D([0], [0], color='green', lw=2),]
 
-phase_diagram.ax.legend(custom_lines, ['X - Nullcline', 'Y - Nullcline'],loc='right', bbox_to_anchor=(0.2, 0.83),ncol=1, frameon=True, prop={'size': 12}, fancybox=True, shadow=False)
+ax.legend(custom_lines, ['X - Nullcline', 'Y - Nullcline'],loc='right', bbox_to_anchor=(0.2, 0.83),ncol=1, frameon=True, prop={'size': 12}, fancybox=True, shadow=False)
 
 plt.show()

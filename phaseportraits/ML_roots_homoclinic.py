@@ -12,22 +12,22 @@ plt.rcParams["figure.figsize"] = (12,12)
 plt.rcParams.update({"axes.titlesize": 17})
 plt.rcParams.update({"axes.labelsize": 15})
 
-
+I_0 = 0
 
 #Definition of the functions to integrate, that is the ML equations
-def ML(V,w, *, I =0):
+def ML(V,w, *, I =I_0):
    minf = 0.5 * (1 + np.tanh( ((V + 1.2 )/ 18)))
    Iion = 4 * minf * (V - 120) + 8*w * (V+84) + 2 * (V + 60)
    winf = 0.5 * (1 + np.tanh( (V - 12) / 17.4))
    return  float(-Iion + I), float(0.23 * (winf - w)*np.cosh( (V - 12) / 2 / 17.4))
 
-def MLx(z, w,*,I = 0):
+def MLx(z, w,*,I = I_0):
   V= z
   minf = 0.5 * (1 + np.tanh( ((V + 1.2 )/ 18)))
   Iion = 4 * minf * (V - 120) + 8*w * (V+84) + 2 * (V + 60)
   return     float(-Iion + I)
 
-def MLy(z,V,*,I = 0):
+def MLy(z,V,*,I = I_0):
   w = z
   winf = 0.5 * (1 + np.tanh( (V - 12) / 17.4))
   return  float(0.23 * (winf - w)*np.cosh( (V - 12) / 2 / 17.4))
@@ -35,7 +35,7 @@ def MLy(z,V,*,I = 0):
 
 #Creation of the phase diagram
 phase_diagram = PhasePortrait2D(ML, [[-80,60],[-0.1,0.5]],
-	  dF_args = {'I': 0},
+	  dF_args = {'I': I_0},
 	  MeshDim = 40,
 	  Title = 'ML Phase portrait Homoclinic I = 0',
 	  xlabel = 'Voltage(mV)',
@@ -62,7 +62,14 @@ for i in bb:
 
 #Creation of the plot, the constant lines are representing the threshold and reset values
 phase_diagram.add_nullclines(xcolor='red',xprecision=0.2,show='x')
-phase_diagram.plot()
+fig, ax = phase_diagram.plot()
+
+circle = Trajectory2D(ML, n_points=100000, size=2, Range=[[-80 , 60], [-0.1 , 0.5]],Fig = fig,Ax=ax,	  Title = 'ML Phase portrait Homoclinic I = 0',
+	  xlabel = 'Voltage(mV)',
+	  ylabel = 'Recovery Variable')
+circle.initial_position(-15,0.0)
+#circle.thermalize(thermalization_steps=10000)
+fig, ax2= circle.plot(color='cool')
 #phase_diagram.ax.plot(X,ii, color= 'red', label = 'X - nullcine')
 phase_diagram.ax.plot(bb,Y, color = 'green', label = 'Y - ullcline')
 custom_lines = [matplotlib.lines.Line2D([0], [0], color='red', lw=2),

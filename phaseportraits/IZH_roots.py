@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import scienceplots
 import numpy as np
 import scipy as sp
+import matplotlib
 
 
 #General plot style used in the project, and size definition
@@ -51,11 +52,25 @@ for i in bb:
 	Y.append(solve_y.root)
 
 
+
+
 #Creation of the plot, the constant lines are representing the threshold and reset values
-phase_diagram.plot()
+fig, ax = phase_diagram.plot()
+
+circle = Trajectory2D(IZH, n_points=10000, size=2, Range=[[-0.5 , 0.5], [-65 , 40]],Fig = fig,Ax=ax,	  Title = 'IZH Phase Portrait',
+	  ylabel = 'Voltage(mV)',
+	  xlabel = 'Recovery Variable')
+circle.initial_position(0.1,-50)
+fig, ax2= circle.plot(color='cool')
+
+#fig.axes.append(ax_test)
+#fig.add_axes(ax_test)
 #phase_diagram.ax.plot(X,ii, color= 'red', label = 'X - nullcine')
 #phase_diagram.ax.plot(bb,Y, color = 'green', label = 'Y - nullcline')
-phase_diagram.ax.hlines(35,-65,50, color = 'blue', label = 'V Peak')
-phase_diagram.ax.hlines(-50,-65,50, color = 'black', label = 'V Reset')
-phase_diagram.ax.legend(loc='right', bbox_to_anchor=(0.17, 0.83),ncol=1, frameon=True, prop={'size': 12}, fancybox=True, shadow=False)
+ax.hlines(35,-65,50, color = 'blue', label = 'V Peak')
+ax.hlines(-50,-65,50, color = 'black', label = 'V Reset')
+custom_lines = [matplotlib.lines.Line2D([0], [0], color='blue', lw=2),
+                matplotlib.lines.Line2D([0], [0], color='black', lw=2),]
+
+ax.legend(custom_lines, ['V Peak', 'V Reset'],loc='right', bbox_to_anchor=(0.2, 0.83),ncol=1, frameon=True, prop={'size': 12}, fancybox=True, shadow=False)
 plt.show()
