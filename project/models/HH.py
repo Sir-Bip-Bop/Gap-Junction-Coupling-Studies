@@ -428,7 +428,7 @@ def HH_Neuron_Network(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena, Ek, 
         return_dict['Matrix_HH'] = np.array(matrix.todense())
         return_dict['synaptic_HH'] = synaptic
 
-def HH_Equation_Network_test(y,n,m,h,synaptic,order,gna,gk,gl,Ena,Ek,El,C,I,tau,gap_junction,connectivity_matrix,gap_current,synaptic_current):
+def HH_Equation_Network_test(y,n,m,h,synaptic,order,gna,gk,gl,Ena,Ek,El,C,I,tau,gap_junction,connectivity_matrix,num_connections,gap_current,synaptic_current):
     '''
     Algorithm that integrates the equations of the Hodgkin-Huxley model, as well as the synaptic filter.
 
@@ -485,7 +485,7 @@ def HH_Equation_Network_test(y,n,m,h,synaptic,order,gna,gk,gl,Ena,Ek,El,C,I,tau,
     Ina = gna * np.multiply(np.multiply(np.power(m,3),h),(y - Ena))
     Ik = gk * np.multiply(np.power(n,4),(y- Ek))
     I_gap = np.ravel((connectivity_matrix.multiply( np.subtract.outer(y, y))).sum(axis=0))
-    gap_current[:] = I_gap
+    gap_current[:] = I_gap * gap_junction 
     #print(y - Vreversal, synaptic[0:len(y)], np.multiply(synaptic[0:len(y)],(y- Vreversal)))
     #print(np.multiply(synaptic[0:len(y)],(y- Vreversal)))
     synaptic_current[:] =  np.multiply(synaptic[0:len(y)],(y- Vreversal))
@@ -614,10 +614,10 @@ def HH_Neuron_Network_tests(dt, t_final, order, y0, n0, m0, h0, gna, gk, gl, Ena
 
     #Runge-Kutta 4th order method 
     for i in range(0,Nsteps-1):
-        k1 = HH_Equation_Network_test(Y[i,:], N[i,:], M[i,:], H[i,:], synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, gap_junction, E_matrix,gap_current[i,:],synaptic_current[i,:])
-        k2 = HH_Equation_Network_test(np.float64(Y[i,:]+ 0.5*dt*k1[0]),N[i,:] + 0.5*dt*k1[1] , M[i,:] + 0.5*dt*k1[2], H[i,:] + 0.5*dt*k1[3],synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, gap_junction, E_matrix, gap_current[i,:], synaptic_current[i,:] )
-        k3 = HH_Equation_Network_test(np.float64(Y[i,:]+ 0.5*dt*k2[0]),N[i,:] + 0.5*dt*k2[1] , M[i,:] + 0.5*dt*k2[2], H[i,:] + 0.5*dt*k2[3],synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, gap_junction, E_matrix, gap_current[i,:], synaptic_current[i,:] )            
-        k4 = HH_Equation_Network_test(np.float64(Y[i,:]+dt*k3[0]),N[i,:] + dt*k3[1] , M[i,:] + dt*k3[2], H[i,:] + dt*k3[3],synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, gap_junction, E_matrix, gap_current[i,:], synaptic_current[i,:]  )
+        k1 = HH_Equation_Network_test(Y[i,:], N[i,:], M[i,:], H[i,:], synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, gap_junction, E_matrix,num_connections,gap_current[i,:],synaptic_current[i,:])
+        k2 = HH_Equation_Network_test(np.float64(Y[i,:]+ 0.5*dt*k1[0]),N[i,:] + 0.5*dt*k1[1] , M[i,:] + 0.5*dt*k1[2], H[i,:] + 0.5*dt*k1[3],synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, gap_junction, E_matrix,num_connections, gap_current[i,:], synaptic_current[i,:] )
+        k3 = HH_Equation_Network_test(np.float64(Y[i,:]+ 0.5*dt*k2[0]),N[i,:] + 0.5*dt*k2[1] , M[i,:] + 0.5*dt*k2[2], H[i,:] + 0.5*dt*k2[3],synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, gap_junction, E_matrix,num_connections, gap_current[i,:], synaptic_current[i,:] )            
+        k4 = HH_Equation_Network_test(np.float64(Y[i,:]+dt*k3[0]),N[i,:] + dt*k3[1] , M[i,:] + dt*k3[2], H[i,:] + dt*k3[3],synaptic[i,:],order, gna, gk, gl, Ena, Ek, El, C, I[i,:], tau, gap_junction, E_matrix,num_connections, gap_current[i,:], synaptic_current[i,:]  )
             
         Y[i + 1, :] = Y[i, :] + 1/6 * dt * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0])
         N[i + 1, :] = N[i, :] + 1/6 * dt * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1])

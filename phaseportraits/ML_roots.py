@@ -71,8 +71,9 @@ fig, ax2= circle.plot(color='cool')
 #phase_diagram.ax.plot(X,ii, color= 'red', label = 'X - nullcine')
 ax.plot(bb,Y, color = 'green', label = 'Y - Nullcline')
 custom_lines = [matplotlib.lines.Line2D([0], [0], color='red', lw=2),
-                matplotlib.lines.Line2D([0], [0], color='green', lw=2),]
+                matplotlib.lines.Line2D([0], [0], color='green', lw=2),
+                matplotlib.lines.Line2D([0], [0], color='blue', lw=2),]
 
-ax.legend(custom_lines, ['X - Nullcline', 'Y - Nullcline'],loc='right', bbox_to_anchor=(0.2, 0.83),ncol=1, frameon=True, prop={'size': 12}, fancybox=True, shadow=False)
+ax.legend(custom_lines, ['X - Nullcline', 'Y - Nullcline', 'Trajectory'],loc='right', bbox_to_anchor=(0.2, 0.83),ncol=1, frameon=True, prop={'size': 12}, fancybox=True, shadow=False)
 
 plt.show()

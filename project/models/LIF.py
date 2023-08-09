@@ -366,7 +366,7 @@ def LIF_Equation_Network_tests(y,synaptic,order,gl,El,C,I,tau,gap_junction,conne
 
     #LIF differential equation
     I_gap = np.ravel((connectivity_matrix.multiply( np.subtract.outer(y, y))).sum(axis=0))
-    gap_current[:] = I_gap
+    gap_current[:] = I_gap * gap_junction
     synaptic_current[:] = np.multiply(synaptic[0:len(y)],(y- Vreversal))
     dvdt = (-gl * np.subtract(y,El) + I + gap_junction * I_gap - np.multiply(synaptic[0:len(y)],(y- Vreversal)) ) / C  
 

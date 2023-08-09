@@ -12,20 +12,20 @@ plt.rcParams["figure.figsize"] = (12,12)
 plt.rcParams.update({"axes.titlesize": 17})
 plt.rcParams.update({"axes.labelsize": 15})
 
-I_0 = 0
+I_0 = 70
 
 #Definition of the functions to integrate, that is the ML equations
 def ML(V,w, *, I =I_0):
    minf = 0.5 * (1 + np.tanh( ((V + 1.2 )/ 18)))
    Iion = 4 * minf * (V - 120) + 8*w * (V+84) + 2 * (V + 60)
    winf = 0.5 * (1 + np.tanh( (V - 12) / 17.4))
-   return  float(-Iion + I), float(0.23 * (winf - w)*np.cosh( (V - 12) / 2 / 17.4))
+   return  float((-Iion + I)/20), float(0.23 * (winf - w)*np.cosh( (V - 12) / 2 / 17.4))
 
 def MLx(z, w,*,I = I_0):
   V= z
   minf = 0.5 * (1 + np.tanh( ((V + 1.2 )/ 18)))
   Iion = 4 * minf * (V - 120) + 8*w * (V+84) + 2 * (V + 60)
-  return     float(-Iion + I)
+  return     float(-Iion + I)/20
 
 def MLy(z,V,*,I = I_0):
   w = z
@@ -48,7 +48,7 @@ phase_diagram = PhasePortrait2D(ML, [[-80,60],[-0.1,0.5]],
 #Obtaining the nullcines in an analytical format - finding the roots
 X = []
 Y = []
-ii = np.linspace(0,1,100)
+ii = np.linspace(-0.1,0.5,100)
 bb = np.linspace(-80,60,100)
 
 #for i in ii:
@@ -61,7 +61,7 @@ for i in bb:
 
 
 #Creation of the plot, the constant lines are representing the threshold and reset values
-phase_diagram.add_nullclines(xcolor='red',xprecision=0.2,show='x')
+phase_diagram.add_nullclines(xcolor='red',xprecision=0.01,show='x')
 fig, ax = phase_diagram.plot()
 
 circle = Trajectory2D(ML, n_points=100000, size=2, Range=[[-80 , 60], [-0.1 , 0.5]],Fig = fig,Ax=ax,	  Title = 'ML Phase portrait Homoclinic I = 0',

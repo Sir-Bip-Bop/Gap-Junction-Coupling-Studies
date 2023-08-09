@@ -11,8 +11,8 @@ import scipy as sp
 plt.style.use('science')
 plt.rcParams["figure.figsize"] = (12,12)
 #plt.rcParams.update({"axes.grid" : True})
-plt.rcParams.update({"axes.titlesize": 17})
-plt.rcParams.update({"axes.labelsize": 15})
+plt.rcParams.update({"axes.titlesize": 25})
+plt.rcParams.update({"axes.labelsize": 23})
 
 
 
@@ -48,6 +48,28 @@ h_array = np.loadtxt('phaseportraits/h_data.txt')
 n_array = np.loadtxt('phaseportraits/n_data.txt')
 time = np.loadtxt('phaseportraits/time_data.txt')
 
+#Definition of the functions to integrate, that is the HH equations for the Voltage and the n variable
+def HHx(z, m, h = h_array[100000], n = n_array[100000], *, I = 2, vt = -58):
+  V= z
+  return  float(-30*m*m*m*h*(V-30) - 5*n*n*n*n*(V+90) - 0.1*(V+70) + I)
+
+def HHy(z,V,*, h = 1, I = 2, vt = -58):
+  m = z
+  return float( -0.32 * (V-vt-13) / (np.exp(-(V-vt-13)/4)-1) * (1-m) - 0.28 * (V-vt-40) / (np.exp((V-vt-40)/5) -1) * m)
+
+X = []
+Y = []
+ii = np.linspace(0,1,100)
+bb = np.linspace(-80,80,100)
+
+for i in ii:
+	solve_x = sp.optimize.root_scalar(HHx,args = (i), x0= -70, x1 = -50)
+	X.append(solve_x.root)
+
+for i in bb:
+	solve_y = sp.optimize.root_scalar(HHy,args = (i), x0= 0, x1 = 1)
+	Y.append(solve_y.root)
+        
 
 #Creation of the phase diagram
 ins = my_function(h_array, n_array, time[0])
@@ -60,7 +82,15 @@ phase_diagram = PhasePortrait2D(ins, [[-80,80],[0,1]],
 	  color= 'cool',
 )
 
-phase_diagram.add_slider('t',valinit=0, valinterval=[0,time[1]], valstep=10)
-phase_diagram.add_nullclines(xprecision=0.06, yprecision=0.06)
-phase_diagram.plot()
+phase_diagram.add_slider('t',valinit=100, valinterval=[0,time[1]], valstep=10)
+#phase_diagram.add_nullclines(xprecision=0.04, yprecision=0.06)
+fig, ax = phase_diagram.plot()
+ax.plot(X,ii, color= 'red', label = 'X - nullcine')
+ax.plot(bb,Y, color = 'green', label = 'Y - nullcline')
+circle = Trajectory2D(ins, n_points=10000, size=2, Range=[[-80 , 80], [0 , 1]],Fig = fig,Ax=ax,	  Title = ' ',
+	  xlabel = 'Voltage(mV)',
+	  ylabel = ' ')
+circle.initial_position(-60,0)
+circle.add_slider('t',valinit=100, valinterval=[0,time[1]], valstep=10)
+fig, ax2= circle.plot(color='cool')
 plt.show()

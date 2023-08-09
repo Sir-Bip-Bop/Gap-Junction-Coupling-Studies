@@ -11,8 +11,8 @@ import scipy as sp
 plt.style.use('science')
 plt.rcParams["figure.figsize"] = (12,12)
 #plt.rcParams.update({"axes.grid" : True})
-plt.rcParams.update({"axes.titlesize": 17})
-plt.rcParams.update({"axes.labelsize": 15})
+plt.rcParams.update({"axes.titlesize": 25})
+plt.rcParams.update({"axes.labelsize": 23})
 
 
 
@@ -49,6 +49,31 @@ h_array = np.loadtxt('phaseportraits/h_data.txt')
 time = np.loadtxt('phaseportraits/time_data.txt')
 
 
+#Definition of the functions to integrate, that is the HH equations for the Voltage and the n variable
+def HHx(z, n, m = m_array[50000], h = h_array[50000], *, I = 2, vt = -58):
+  V= z
+  return  float(-30*m*m*m*h*(V-30) - 5*n*n*n*n*(V+90) - 0.1*(V+70) + I)
+
+def HHy(z,V,*, m = 1, h = 1, I = 2, vt = -58):
+  n = z
+  return float( -0.032 * (V-vt-15) / (np.exp(-(V-vt-15)/5)-1) * (1-n) - 0.5 * (np.exp(-(V-vt-10)/40)) * n)
+
+X = []
+Y = []
+ii = np.linspace(0,1,100)
+bb = np.linspace(-80,80,100)
+
+for i in ii:
+	solve_x = sp.optimize.root_scalar(HHx,args = (i), x0= -70, x1 = -50)
+	X.append(solve_x.root)
+
+for i in bb:
+	solve_y = sp.optimize.root_scalar(HHy,args = (i), x0= 0, x1 = 1)
+	Y.append(solve_y.root)
+        
+#print(X)
+#Definition of the functions to integrate, that is the HH equations for the Voltage and the h variable
+
 #Creation of the phase diagram
 ins = my_function(m_array, h_array, time[0])
 phase_diagram = PhasePortrait2D(ins, [[-80,80],[0,1]],
@@ -60,7 +85,17 @@ phase_diagram = PhasePortrait2D(ins, [[-80,80],[0,1]],
 	  color= 'cool',
 )
 
-phase_diagram.add_slider('t',valinit=0, valinterval=[0,time[1]], valstep=10)
-phase_diagram.add_nullclines(xprecision=0.01, yprecision=0.01)
-phase_diagram.plot()
+phase_diagram.add_slider('t',valinit=50, valinterval=[0,time[1]], valstep=10)
+#phase_diagram.add_nullclines( yprecision=0.001)
+
+fig, ax = phase_diagram.plot()
+ax.plot(X,ii, color= 'red', label = 'X - nullcine')
+ax.plot(bb,Y, color = 'green', label = 'Y - nullcline')
+circle = Trajectory2D(ins, n_points=10000, size=2, Range=[[-80 , 80], [0 , 1]],Fig = fig,Ax=ax,	  Title = 'HH Phase Portrait (V-n)',
+	  xlabel = ' ',
+	  ylabel = 'Recovery Variable')
+circle.initial_position(-60,0)
+circle.add_slider('t',valinit=50, valinterval=[0,time[1]], valstep=10)
+fig, ax2= circle.plot(color='cool')
+
 plt.show()
