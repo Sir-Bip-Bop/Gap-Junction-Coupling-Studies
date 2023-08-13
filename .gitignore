@@ -163,3 +163,7 @@ MultipleNeurons/gap_current4/data_ML.txt
 MultipleNeurons/gap_current4/data_IF.txt
 MultipleNeurons/gap_current4/data_IZH.txt
 MultipleNeurons/gap_current4/data_HH.txt
+tests.ipynb
+MultipleNeurons/k_plus_20/k_data.txt
+MultipleNeurons/k_plus_20/diff_HH_data.txt
+MultipleNeurons/k_plus_20/num_data.txt

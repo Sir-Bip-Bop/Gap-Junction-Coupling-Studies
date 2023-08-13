@@ -53,7 +53,7 @@ n_array = np.loadtxt('phaseportraits/n_data.txt')
 time = np.loadtxt('phaseportraits/time_data.txt')
 
 #Definition of the functions to integrate, that is the HH equations for the Voltage and the n variable
-def HHx(z, h, m=m_array[100000], n = n_array[100000], *, I = 2, vt = -58):
+def HHx(z, h, m=m_array[65000], n = n_array[65000], *, I = 2, vt = -58):
   V= z
   return  float(-30*m*m*m*h*(V-30) - 5*n*n*n*n*(V+90) - 0.1*(V+70) + I)
 
@@ -86,7 +86,7 @@ phase_diagram = PhasePortrait2D(ins, [[-80,80],[0,1]],
       color= 'cool',
 )
 
-phase_diagram.add_slider('t',valinit=100, valinterval=[0,time[1]], valstep=10)
+phase_diagram.add_slider('t',valinit=65, valinterval=[0,time[1]], valstep=10)
 #phase_diagram.add_nullclines(xprecision=0.01, yprecision=0.001)
 fig, ax = phase_diagram.plot()
 ax.plot(X,ii, color= 'red', label = 'X - nullcine')
@@ -95,7 +95,7 @@ circle = Trajectory2D(ins, n_points=10000, size=2, Range=[[-80 , 80], [0 , 1]],F
 	  xlabel = 'Voltage(mV)',
 	  ylabel = ' ')
 circle.initial_position(-60,0)
-circle.add_slider('t',valinit=100, valinterval=[0,time[1]], valstep=10)
+circle.add_slider('t',valinit=65, valinterval=[0,time[1]], valstep=10)
 fig, ax2= circle.plot(color='cool')
 
 

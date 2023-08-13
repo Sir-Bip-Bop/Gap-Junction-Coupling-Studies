@@ -15,11 +15,13 @@ m0 = 0
 h0 = 0
 y0 = [v0,n0,m0,h0]
 Isyn = np.zeros(([2 , 2 ]))
-I = [2.5, 0]
+
 
 #variables related to the numerical integration of the problem
 dt = 0.001
 t_final = 300
+I = np.zeros((int(t_final/dt),2))
+I[:,0] = 2.5
 
 time = np.array([dt,t_final])
 
@@ -31,7 +33,10 @@ V_array = complete_HH[:,0]
 m_array = complete_HH[:,1]
 n_array = complete_HH[:,2]
 h_array = complete_HH[:,3]
-
+t = np.linspace(0,t_final,int(t_final/dt))
+plt.plot(t,data_HH[:,0])
+plt.xlim(64,66)
+plt.show()
 np.savetxt('phaseportraits/v_data.txt',V_array)
 np.savetxt('phaseportraits/m_data.txt',m_array)
 np.savetxt('phaseportraits/n_data.txt',n_array)

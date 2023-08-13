@@ -9,10 +9,10 @@ import matplotlib
 plt.style.use('science')
 plt.rcParams["figure.figsize"] = (12,12)
 #plt.rcParams.update({"axes.grid" : True})
-plt.rcParams.update({"axes.titlesize": 17})
-plt.rcParams.update({"axes.labelsize": 15})
+plt.rcParams.update({"axes.titlesize": 22})
+plt.rcParams.update({"axes.labelsize": 20})
 
-I_0 = 70
+I_0 = 40
 
 #Definition of the functions to integrate, that is the ML equations
 def ML(V,w, *, I =I_0):
@@ -64,7 +64,7 @@ for i in bb:
 phase_diagram.add_nullclines(xcolor='red',xprecision=0.01,show='x')
 fig, ax = phase_diagram.plot()
 
-circle = Trajectory2D(ML, n_points=100000, size=2, Range=[[-80 , 60], [-0.1 , 0.5]],Fig = fig,Ax=ax,	  Title = 'ML Phase portrait Homoclinic I = 0',
+circle = Trajectory2D(ML, n_points=100000, size=2, Range=[[-80 , 60], [-0.1 , 0.5]],Fig = fig,Ax=ax,	  Title = 'ML Phase portrait Homoclinic I = 40',
 	  xlabel = 'Voltage(mV)',
 	  ylabel = 'Recovery Variable')
 circle.initial_position(-15,0.0)

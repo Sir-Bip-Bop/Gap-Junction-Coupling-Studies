@@ -9,8 +9,8 @@ import matplotlib
 plt.style.use('science')
 plt.rcParams["figure.figsize"] = (12,12)
 #plt.rcParams.update({"axes.grid" : True})
-plt.rcParams.update({"axes.titlesize": 17})
-plt.rcParams.update({"axes.labelsize": 15})
+plt.rcParams.update({"axes.titlesize": 22})
+plt.rcParams.update({"axes.labelsize": 20})
 
 
 

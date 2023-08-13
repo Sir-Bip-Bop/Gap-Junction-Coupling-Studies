@@ -10,12 +10,12 @@ import matplotlib
 plt.style.use('science')
 plt.rcParams["figure.figsize"] = (12,12)
 #plt.rcParams.update({"axes.grid" : True})
-plt.rcParams.update({"axes.titlesize": 17})
-plt.rcParams.update({"axes.labelsize": 15})
+plt.rcParams.update({"axes.titlesize": 22})
+plt.rcParams.update({"axes.labelsize": 20})
 
 #Definition of the functions to integrate, that is the IZH equation
 def IZH(V,u, *, I =2.5):
-  return  float(0.019*(V+70)* (V+48.5) - 0.06*u + I), float( 0.5* (-1.3 * (V+70)-u) )
+  return  float(0.019*(V+70)* (V+48.5) - 0.06* u + I), float( 0.5* (-1.3 * (V+70)-u) )
 
 def IZHx(z, u,*,I = 2.5):
   V= z
@@ -27,7 +27,7 @@ def IZHy(z,V,*,I = 2.5):
 
 
 #Creation of the phase diagram
-phase_diagram = PhasePortrait2D(IZH, [[-80,60],[-1.5,1.5]],
+phase_diagram = PhasePortrait2D(IZH, [[-80,60],[-150,150]],
 	  dF_args = {'I': 2.5},
 	  MeshDim = 40,
 	  Title = 'IZH Phase Portrait',
@@ -57,18 +57,18 @@ bb = np.linspace(-65,40,100)
 #Creation of the plot, the constant lines are representing the threshold and reset values
 fig, ax = phase_diagram.plot()
 
-circle = Trajectory2D(IZH, n_points=10000, size=2, Range=[ [-65 , 40],[-0.5 , 0.5]],Fig = fig,Ax=ax,	  Title = 'IZH Phase Portrait',
-	  ylabel = 'Voltage(mV)',
-	  xlabel = 'Recovery Variable')
-circle.initial_position(-65,0)
+circle = Trajectory2D(IZH, n_points=10000, size=2, Range=[ [-80 , 60],[-150 , 150]],Fig = fig,Ax=ax,	  Title = 'IZH Phase Portrait',
+	  xlabel = 'Voltage(mV)',
+	  ylabel = 'Recovery Variable')
+circle.initial_position(-70,100)
 fig,ax2= circle.plot(color='cool')
 
 #fig.axes.append(ax_test)
 #fig.add_axes(ax_test)
 #phase_diagram.ax.plot(X,ii, color= 'red', label = 'X - nullcine')
 #phase_diagram.ax.plot(bb,Y, color = 'green', label = 'Y - nullcline')
-ax.vlines(35,-65,50, color = 'blue', label = 'V Peak')
-ax.vlines(-50,-65,50, color = 'black', label = 'V Reset')
+ax.vlines(35,-150,150, color = 'blue', label = 'V Peak')
+ax.vlines(-50,-150,150, color = 'black', label = 'V Reset')
 custom_lines = [matplotlib.lines.Line2D([0], [0], color='blue', lw=2),
                 matplotlib.lines.Line2D([0], [0], color='black', lw=2),
                 matplotlib.lines.Line2D([0], [0], color='pink', lw=2),]
