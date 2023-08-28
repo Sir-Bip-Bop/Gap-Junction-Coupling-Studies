@@ -20,8 +20,5 @@ Repository with the code of the masters project and a link to the overleaf docum
 
 **VoltageProfiling.ipynb:** This initial notebook showcases the work done in order to obtain the initial parameter values for each of the models used in this project
 
-### Overleaf link
-
-https://www.overleaf.com/9521949183wpypsjzxpcnh
 
 
