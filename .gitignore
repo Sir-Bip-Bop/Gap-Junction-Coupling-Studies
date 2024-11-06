@@ -168,14 +168,10 @@ MultipleNeurons/k_plus_20/k_data.txt
 MultipleNeurons/k_plus_20/diff_HH_data.txt
 MultipleNeurons/k_plus_20/num_data.txt
 MultipleNeurons/gap_current15/data_HH.txt
-.gitignore
 MultipleNeurons/gap_current15/data_ML.txt
 MultipleNeurons/gap_current16/data_HH.txt
-.gitignore
 MultipleNeurons/gap_current15/data_IZH.txt
 MultipleNeurons/gap_current16/data_ML.txt
-.gitignore
 MultipleNeurons/gap_current4/data_IF3.txt
-.gitignore
 MultipleNeurons/gap_current16/data_IZH.txt
 MultipleNeurons/gap_current4/data_IF2.txt
